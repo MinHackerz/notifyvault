@@ -196,7 +196,9 @@ class SettingsScreen extends ConsumerWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(9),
                     child: Image.asset(
-                      'assets/icons/app_icon.png',
+                      isDark
+                          ? 'assets/icons/app_icon_dark.png'
+                          : 'assets/icons/app_icon.png',
                       width: 44,
                       height: 44,
                     ),
@@ -411,6 +413,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _showAboutDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (context) => AboutDialog(
@@ -427,7 +430,9 @@ class SettingsScreen extends ConsumerWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(7),
             child: Image.asset(
-              'assets/icons/app_icon.png',
+              isDark
+                  ? 'assets/icons/app_icon_dark.png'
+                  : 'assets/icons/app_icon.png',
               width: 56,
               height: 56,
               fit: BoxFit.cover,

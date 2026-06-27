@@ -61,7 +61,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(15),
                 child: Image.asset(
-                  'assets/icons/app_icon.png',
+                  isDark
+                      ? 'assets/icons/app_icon_dark.png'
+                      : 'assets/icons/app_icon.png',
                   width: 96,
                   height: 96,
                   fit: BoxFit.cover,

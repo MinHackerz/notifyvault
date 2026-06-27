@@ -19,6 +19,7 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final permissionState = ref.watch(notificationPermissionProvider);
 
     return Scaffold(
@@ -79,7 +80,9 @@ class DashboardScreen extends ConsumerWidget {
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(7),
                               child: Image.asset(
-                                'assets/icons/app_icon.png',
+                                isDark
+                                    ? 'assets/icons/app_icon_dark.png'
+                                    : 'assets/icons/app_icon.png',
                                 width: 36,
                                 height: 36,
                                 fit: BoxFit.cover,
@@ -188,6 +191,7 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   void _showAboutDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (context) => AboutDialog(
@@ -204,7 +208,9 @@ class DashboardScreen extends ConsumerWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(9),
             child: Image.asset(
-              'assets/icons/app_icon.png',
+              isDark
+                  ? 'assets/icons/app_icon_dark.png'
+                  : 'assets/icons/app_icon.png',
               width: 48,
               height: 48,
               fit: BoxFit.cover,
