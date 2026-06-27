@@ -31,9 +31,27 @@ class NotificationTile extends StatelessWidget {
 
     return Dismissible(
       key: Key(notification.id),
-      direction: DismissDirection.endToStart,
+      direction: DismissDirection.horizontal,
       onDismissed: (_) => onDismiss?.call(),
       background: Container(
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.only(left: 24),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.error.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: theme.colorScheme.error.withValues(alpha: 0.2),
+            width: 1.0,
+          ),
+        ),
+        child: HugeIcon(
+          icon: HugeIcons.strokeRoundedDelete02,
+          color: theme.colorScheme.error,
+          size: 20,
+        ),
+      ),
+      secondaryBackground: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 24),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),

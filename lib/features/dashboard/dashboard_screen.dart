@@ -573,6 +573,11 @@ class _RecentNotifications extends ConsumerWidget {
                       .markAsRead(notification.id);
                   context.push('/notification/${notification.id}');
                 },
+                onDismiss: () {
+                  ref
+                      .read(notificationRepositoryProvider)
+                      .deleteNotification(notification.id);
+                },
               );
             },
             childCount: recent.length,
