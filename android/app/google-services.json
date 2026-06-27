@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "731414456919",
+    "project_id": "notifyvault-a4768",
+    "storage_bucket": "notifyvault-a4768.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:731414456919:android:f68c9a00441c9bea24d112",
+        "android_client_info": {
+          "package_name": "com.notifyvault.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "731414456919-isbfbon80089447bg6l6v1g5hu09k67k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.notifyvault.app",
+            "certificate_hash": "03584e5e21f9f93a30cb40012aba08f7b53de45e"
+          }
+        },
+        {
+          "client_id": "731414456919-v9s7c6gc1t0ji1v5om7edmirooiiamjo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCd_BdWsgvGjiukfqlqdjQ3UC67T6-QpGo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "731414456919-v9s7c6gc1t0ji1v5om7edmirooiiamjo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
