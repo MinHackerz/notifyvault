@@ -6,6 +6,12 @@ import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import java.io.File
+import java.io.FileOutputStream
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 
 /**
  * Android NotificationListenerService that captures all device notifications
@@ -130,6 +136,8 @@ class NotificationCaptureService : NotificationListenerService() {
             }
         }
 
+        val iconPath = saveAppIcon(sbn.packageName)
+
         // Build the data map
         return mapOf(
             "id" to sbn.key,
@@ -149,8 +157,49 @@ class NotificationCaptureService : NotificationListenerService() {
             "isGroupSummary" to (sbn.notification.flags.and(Notification.FLAG_GROUP_SUMMARY) != 0),
             "groupKey" to sbn.groupKey,
             "category" to notification.category,
+            "iconPath" to iconPath,
             "action" to "posted"
         )
+    }
+
+    private fun saveAppIcon(packageName: String): String? {
+        try {
+            val iconDir = File(filesDir, "icons")
+            if (!iconDir.exists()) {
+                iconDir.mkdirs()
+            }
+            val iconFile = File(iconDir, "$packageName.png")
+
+            // If already cached, just return the path
+            if (iconFile.exists()) {
+                return iconFile.absolutePath
+            }
+
+            val appInfo = packageManager.getApplicationInfo(packageName, 0)
+            val drawable = packageManager.getApplicationIcon(appInfo)
+
+            // Convert drawable to Bitmap
+            val bitmap = if (drawable is BitmapDrawable) {
+                drawable.bitmap
+            } else {
+                val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 96
+                val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 96
+                val bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                val canvas = Canvas(bmp)
+                drawable.setBounds(0, 0, canvas.width, canvas.height)
+                drawable.draw(canvas)
+                bmp
+            }
+
+            // Save to disk
+            FileOutputStream(iconFile).use { out ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            }
+            return iconFile.absolutePath
+        } catch (e: Exception) {
+            Log.e(TAG, "Error saving app icon: ${e.message}")
+            return null
+        }
     }
 
     /**
