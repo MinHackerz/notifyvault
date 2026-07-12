@@ -101,7 +101,7 @@ class NotificationCaptureService : NotificationListenerService() {
         // Extract sender for messaging-style notifications
         val senderName = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             val messages = Notification.MessagingStyle.Message.getMessagesFromBundleArray(
-                extras.getParcelableArray(Notification.EXTRA_MESSAGES)?.map { it as android.os.Bundle }?.toTypedArray()
+                extras.getParcelableArray(Notification.EXTRA_MESSAGES)?.mapNotNull { it as? android.os.Bundle }?.toTypedArray()
                     ?: emptyArray()
             )
             messages.lastOrNull()?.senderPerson?.name?.toString()
@@ -176,7 +176,12 @@ class NotificationCaptureService : NotificationListenerService() {
             }
 
             val appInfo = packageManager.getApplicationInfo(packageName, 0)
-            val drawable = packageManager.getApplicationIcon(appInfo)
+            val drawable = try {
+                packageManager.getApplicationIcon(appInfo)
+            } catch (e: Exception) {
+                null
+            }
+            if (drawable == null) return null
 
             // Convert drawable to Bitmap
             val bitmap = if (drawable is BitmapDrawable) {
