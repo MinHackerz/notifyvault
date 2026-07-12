@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - NotifyVault</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS for rapid styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        obsidian: '#0B0F19',
+                        electricIndigo: '#8B5CF6',
+                        slateLight: '#F8FAFC',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-obsidian text-slate-300 font-sans min-h-screen selection:bg-electricIndigo selection:text-white">
+
+    <div class="max-w-4xl mx-auto px-6 py-16">
+        <!-- Header -->
+        <header class="border-b border-slate-800 pb-8 mb-12 text-center md:text-left">
+            <h1 class="text-4xl font-extrabold text-white tracking-tight mb-2">Privacy Policy</h1>
+            <p class="text-electricIndigo font-semibold text-lg tracking-wide uppercase">NotifyVault</p>
+            <p class="text-slate-500 text-sm mt-2">Last Updated: July 12, 2026</p>
+        </header>
+
+        <!-- Content -->
+        <main class="space-y-10 leading-relaxed text-slate-300">
+            <!-- App Details Card -->
+            <section class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 mb-8">
+                <h2 class="text-xl font-bold text-white mb-4">Application Specifications</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="text-slate-500 block">App Name:</span>
+                        <span class="text-white font-medium">NotifyVault</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block">Package Name (Android):</span>
+                        <span class="text-white font-mono">com.notifyvault.app</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block">Service Type:</span>
+                        <span class="text-white font-medium">Local Notification Logger & Database</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block">Data Server Sync:</span>
+                        <span class="text-emerald-400 font-semibold">None (100% Offline-only)</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 1 -->
+            <section>
+                <h3 class="text-2xl font-bold text-white mb-3">1. Information Collection and Use</h3>
+                <p class="mb-4">
+                    NotifyVault uses the Android <strong>NotificationListenerService</strong> API to read incoming system notifications. The app captures and saves details of incoming notifications (such as Title, Text, Subtext, App Name, Package Name, and timestamp) directly into a local SQLite database on your device.
+                </p>
+                <p class="font-semibold text-white border-l-4 border-electricIndigo pl-4 my-4">
+                    Strict Privacy Protection: All captured notifications are stored entirely on your local device. We do not run any cloud servers, and we never collect, upload, share, or transmit your database logs to any external systems or third-party servers.
+                </p>
+            </section>
+
+            <!-- Section 2 -->
+            <section>
+                <h3 class="text-2xl font-bold text-white mb-3">2. Advertisements</h3>
+                <p class="mb-4">
+                    To support ongoing development, NotifyVault displays third-party advertisements using the <strong>Google Mobile Ads SDK (AdMob)</strong>.
+                </p>
+                <p class="mb-4">
+                    Google AdMob may collect and process device advertising identifiers (such as the Android Ad ID) and location metrics to serve personalized or non-personalized banner ads. The collection and usage of this data are governed by Google's Privacy Policy. 
+                </p>
+                <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-electricIndigo hover:underline font-semibold mt-2">
+                    Learn how Google uses your data &rarr;
+                </a>
+            </section>
+
+            <!-- Section 3 -->
+            <section>
+                <h3 class="text-2xl font-bold text-white mb-3">3. Data Retention and Deletion</h3>
+                <p class="mb-4">
+                    By default, the database stores notification history locally. You are in complete control of your data:
+                </p>
+                <ul class="list-disc pl-6 space-y-2 mb-4">
+                    <li><strong>Retention Settings</strong>: You can configure automatic database cleanup (e.g. automatically purge messages older than 7 days) inside the Settings screen.</li>
+                    <li><strong>Manual Wipe</strong>: You can erase your entire notification history database instantly by tapping the <em>"Clear Database"</em> button in the Settings menu.</li>
+                    <li><strong>App Uninstall</strong>: Uninstalling the NotifyVault application from your Android device immediately deletes the entire SQLite database file and all stored logs from your disk permanently.</li>
+                </ul>
+            </section>
+
+            <!-- Section 4 -->
+            <section>
+                <h3 class="text-2xl font-bold text-white mb-3">4. Security</h3>
+                <p>
+                    Since your database is offline and stored locally, it is protected by Android’s standard sandboxing architecture. No other applications on your device can access NotifyVault's private database directory.
+                </p>
+            </section>
+
+            <!-- Section 5 -->
+            <section>
+                <h3 class="text-2xl font-bold text-white mb-3">5. Changes to This Privacy Policy</h3>
+                <p>
+                    We may update our Privacy Policy from time to time. We will notify you of any changes by posting the updated Privacy Policy page here. You are advised to review this page periodically for any modifications.
+                </p>
+            </section>
+
+            <!-- Section 6 -->
+            <section class="border-t border-slate-800 pt-8 mt-12">
+                <h3 class="text-2xl font-bold text-white mb-3">6. Contact Us</h3>
+                <p class="mb-4">
+                    If you have any questions or feedback regarding this Privacy Policy or your data usage inside NotifyVault, feel free to open a ticket or contact us directly on GitHub:
+                </p>
+                <a href="https://github.com/MinHackerz/notifyvault" target="_blank" rel="noopener noreferrer" class="text-electricIndigo hover:underline font-semibold">
+                    github.com/MinHackerz/notifyvault
+                </a>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="border-t border-slate-800 text-center text-slate-600 text-sm mt-16 pt-8">
+            &copy; 2026 NotifyVault. Created and maintained by MinHackerz.
+        </footer>
+    </div>
+
+</body>
+</html>
