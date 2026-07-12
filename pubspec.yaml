@@ -1,7 +1,7 @@
 name: notify_vault
 description: "Never Lose a Notification Again"
 publish_to: 'none'
-version: 1.0.0+2
+version: 1.0.0+3
 
 environment:
   sdk: ^3.12.2
@@ -72,7 +72,10 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "assets/icons/app_icon_dark.png"
+  image_path: "assets/icons/app_icon.png"
+  adaptive_icon_background: "#F6F6F3"
+  adaptive_icon_foreground: "assets/icons/app_icon.png"
+  adaptive_icon_monochrome: "assets/icons/app_icon_dark.png"
 
 flutter:
   uses-material-design: true

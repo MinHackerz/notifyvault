@@ -16,6 +16,19 @@
 # SQLite / Drift
 -keep class org.sqlite.** { *; }
 -keep class sqlite3.** { *; }
+-keep class com.sqlite3.** { *; }
+-dontwarn org.sqlite.**
+-dontwarn sqlite3.**
+-dontwarn com.sqlite3.**
+
+# Preserve native method names and their calling classes (crucial for JNI / FFI plugins)
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+
+# Flutter Secure Storage
+-keep class android.security.keystore.** { *; }
+-dontwarn android.security.keystore.**
 
 # Suppress Play Store Deferred Components warning
 -dontwarn com.google.android.play.core.**
