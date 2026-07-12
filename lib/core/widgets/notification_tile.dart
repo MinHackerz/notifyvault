@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../models/notification_model.dart';
 import '../../models/category_model.dart';
 import '../extensions/date_extensions.dart';
@@ -39,7 +40,7 @@ class NotificationTile extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
         decoration: BoxDecoration(
           color: theme.colorScheme.error.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: theme.colorScheme.error.withValues(alpha: 0.2),
             width: 1.0,
@@ -57,7 +58,7 @@ class NotificationTile extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
         decoration: BoxDecoration(
           color: theme.colorScheme.error.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: theme.colorScheme.error.withValues(alpha: 0.2),
             width: 1.0,
@@ -72,20 +73,42 @@ class NotificationTile extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
+          color: isDark ? const Color(0xFF131A2D) : theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: notification.isRead
                 ? (isDark ? AppColors.outlineDark : AppColors.outlineLight)
-                : theme.colorScheme.primary,
-            width: 1.0,
+                : theme.colorScheme.primary.withValues(alpha: 0.8),
+            width: notification.isRead ? 1.0 : 1.5,
           ),
+          boxShadow: isDark
+              ? [
+                  if (!notification.isRead)
+                    BoxShadow(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                      blurRadius: 10,
+                      spreadRadius: 1,
+                    )
+                ]
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                  if (!notification.isRead)
+                    BoxShadow(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    )
+                ],
         ),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Row(
@@ -240,7 +263,10 @@ class NotificationTile extends StatelessWidget {
           ),
         ),
       ),
-    );
+    )
+        .animate()
+        .fadeIn(duration: 250.ms, curve: Curves.easeOutQuad)
+        .slideY(begin: 0.08, end: 0, duration: 250.ms, curve: Curves.easeOutQuad);
   }
 
   Widget _buildAvatar(ThemeData theme, CategoryModel category, bool isDark) {
@@ -265,16 +291,16 @@ class NotificationTile extends StatelessWidget {
               height: 44,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) =>
-                  _buildInitialsAvatar(theme, category),
+                  _buildFallbackAvatar(theme, category),
             ),
           ),
         );
       }
     }
-    return _buildInitialsAvatar(theme, category);
+    return _buildFallbackAvatar(theme, category);
   }
 
-  Widget _buildInitialsAvatar(ThemeData theme, CategoryModel category) {
+  Widget _buildFallbackAvatar(ThemeData theme, CategoryModel category) {
     return Container(
       width: 44,
       height: 44,
@@ -287,13 +313,10 @@ class NotificationTile extends StatelessWidget {
         ),
       ),
       child: Center(
-        child: Text(
-          notification.appName.initials(1),
-          style: theme.textTheme.titleMedium?.copyWith(
-            color: category.color,
-            fontWeight: FontWeight.w800,
-            fontSize: 16,
-          ),
+        child: HugeIcon(
+          icon: _getAppIcon(notification.packageName),
+          size: 22,
+          color: category.color,
         ),
       ),
     );

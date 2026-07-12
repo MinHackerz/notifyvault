@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../app/theme/app_colors.dart';
 import '../../app/config/app_config.dart';
 import '../../app/router/app_router.dart';
@@ -40,7 +41,7 @@ class DashboardScreen extends ConsumerWidget {
                     AppConfig.appName,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
+                      letterSpacing: -0.8,
                       color: theme.colorScheme.onSurface,
                       fontSize: 20,
                     ),
@@ -54,6 +55,21 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                   ),
                 ],
+              ),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: isDark
+                      ? LinearGradient(
+                          colors: [AppColors.secondaryDark, AppColors.backgroundDark],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        )
+                      : LinearGradient(
+                          colors: [theme.colorScheme.primary.withValues(alpha: 0.05), Colors.transparent],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                ),
               ),
             ),
             actions: [
@@ -331,7 +347,10 @@ class _StatsGrid extends ConsumerWidget {
                   error: (_, _) => '0',
                 ),
                 color: theme.colorScheme.primary,
-              ),
+              )
+                  .animate()
+                  .fadeIn(duration: 350.ms, curve: Curves.easeOut)
+                  .slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -344,7 +363,10 @@ class _StatsGrid extends ConsumerWidget {
                   error: (_, _) => '0',
                 ),
                 color: AppColors.accent,
-              ),
+              )
+                  .animate()
+                  .fadeIn(delay: 100.ms, duration: 350.ms, curve: Curves.easeOut)
+                  .slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
             ),
           ],
         ),
@@ -361,7 +383,10 @@ class _StatsGrid extends ConsumerWidget {
                   error: (_, _) => '0',
                 ),
                 color: AppColors.warning,
-              ),
+              )
+                  .animate()
+                  .fadeIn(delay: 200.ms, duration: 350.ms, curve: Curves.easeOut)
+                  .slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -374,7 +399,10 @@ class _StatsGrid extends ConsumerWidget {
                   error: (_, _) => '0',
                 ),
                 color: AppColors.categoryPayments,
-              ),
+              )
+                  .animate()
+                  .fadeIn(delay: 300.ms, duration: 350.ms, curve: Curves.easeOut)
+                  .slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
             ),
           ],
         ),
@@ -402,14 +430,23 @@ class _StatCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        color: isDark ? const Color(0xFF131A2D) : theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
+          color: color.withValues(alpha: isDark ? 0.25 : 0.15),
           width: 1.0,
         ),
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                )
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -420,7 +457,7 @@ class _StatCard extends StatelessWidget {
             height: 36,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Center(
               child: HugeIcon(icon: icon, size: 18, color: color),
@@ -431,8 +468,7 @@ class _StatCard extends StatelessWidget {
             value,
             style: theme.textTheme.displayLarge?.copyWith(
               fontSize: 28,
-              fontWeight: FontWeight.normal,
-              fontStyle: FontStyle.italic,
+              fontWeight: FontWeight.w800,
               color: color,
             ),
           ),

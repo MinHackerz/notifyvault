@@ -14,7 +14,7 @@ void main() {
     // Verify app launches
     expect(find.byType(NotifyVaultApp), findsOneWidget);
 
-    // Settle all splash transition timers
-    await tester.pumpAndSettle();
+    // Pump to advance past splash transition (avoid pumpAndSettle due to infinite CircularProgressIndicator)
+    await tester.pump(const Duration(milliseconds: 2500));
   });
 }

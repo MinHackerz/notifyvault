@@ -2,9 +2,11 @@ package com.notifyvault.app.channel
 
 import android.content.ComponentName
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
+import android.util.Log
 import com.notifyvault.app.service.NotificationCaptureService
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
@@ -35,7 +37,11 @@ class NotificationMethodChannel(private val flutterEngine: FlutterEngine) {
         ).setMethodCallHandler { call, result ->
             when (call.method) {
                 "isPermissionGranted" -> {
-                    result.success(isNotificationListenerEnabled(activity))
+                    val enabled = isNotificationListenerEnabled(activity)
+                    if (enabled && NotificationCaptureService.instance == null) {
+                        rebindService(activity)
+                    }
+                    result.success(enabled)
                 }
 
                 "openPermissionSettings" -> {
@@ -45,6 +51,10 @@ class NotificationMethodChannel(private val flutterEngine: FlutterEngine) {
                 }
 
                 "getActiveNotifications" -> {
+                    val enabled = isNotificationListenerEnabled(activity)
+                    if (enabled && NotificationCaptureService.instance == null) {
+                        rebindService(activity)
+                    }
                     val service = NotificationCaptureService.instance
                     if (service != null) {
                         val notifications = service.getActiveNotificationsList()
@@ -109,5 +119,29 @@ class NotificationMethodChannel(private val flutterEngine: FlutterEngine) {
             "enabled_notification_listeners"
         )
         return flat != null && flat.contains(cn.flattenToString())
+    }
+
+    /**
+     * Force-rebinds the notification listener service by toggling its component enabled state.
+     * This is useful during development or updates when the Android system fails to bind to the service.
+     */
+    private fun rebindService(activity: android.app.Activity) {
+        try {
+            val pm = activity.packageManager
+            val cn = ComponentName(activity, NotificationCaptureService::class.java)
+            pm.setComponentEnabledSetting(
+                cn,
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP
+            )
+            pm.setComponentEnabledSetting(
+                cn,
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP
+            )
+            Log.d("NotifyVault", "Forced NotificationCaptureService rebind via PackageManager")
+        } catch (e: Exception) {
+            Log.e("NotifyVault", "Failed to force rebind: ${e.message}")
+        }
     }
 }

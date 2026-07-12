@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../app/theme/app_colors.dart';
 import '../../providers/search_providers.dart';
 import '../../providers/notification_providers.dart';
@@ -62,7 +63,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             child: Container(
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
                   width: 1.0,
@@ -118,7 +119,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   }
                 },
               ),
-            ),
+            )
+                .animate()
+                .fadeIn(duration: 300.ms)
+                .slideY(begin: -0.05, end: 0, curve: Curves.easeOutQuad),
           ),
 
           // Search Filters

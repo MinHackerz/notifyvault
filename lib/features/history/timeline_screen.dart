@@ -136,8 +136,9 @@ class TimelineScreen extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: theme.colorScheme.surface,
+      showDragHandle: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
         return Consumer(

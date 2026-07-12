@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -53,7 +54,7 @@ class NotificationDetailScreen extends ConsumerWidget {
                         onSelected: (value) =>
                             _handleAction(context, ref, value, notification),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           side: BorderSide(
                             color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
                             width: 1.0,
@@ -130,7 +131,7 @@ class NotificationDetailScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
                 width: 1.0,
@@ -139,29 +140,7 @@ class NotificationDetailScreen extends ConsumerWidget {
             child: Row(
               children: [
                 // App avatar clean flat
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: category.color.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: category.color.withValues(alpha: 0.15),
-                      width: 1.0,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      notification.appName.isNotEmpty
-                          ? notification.appName[0].toUpperCase()
-                          : '?',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: category.color,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                ),
+                _buildAvatar(theme, notification, category, isDark),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
@@ -200,7 +179,7 @@ class NotificationDetailScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
                 width: 1.0,
@@ -286,7 +265,7 @@ class NotificationDetailScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
                   width: 1.0,
@@ -314,7 +293,7 @@ class NotificationDetailScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
                   width: 1.0,
@@ -420,12 +399,12 @@ class NotificationDetailScreen extends ConsumerWidget {
           Clipboard.setData(ClipboardData(text: value));
           context.showSnackBar('$label copied to clipboard');
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
               width: 1.0,
@@ -511,6 +490,91 @@ class NotificationDetailScreen extends ConsumerWidget {
         Navigator.of(context).pop();
         break;
     }
+  }
+
+  Widget _buildAvatar(
+    ThemeData theme,
+    NotificationModel notification,
+    CategoryModel category,
+    bool isDark,
+  ) {
+    if (notification.iconPath != null && notification.iconPath!.isNotEmpty) {
+      final file = File(notification.iconPath!);
+      if (file.existsSync()) {
+        return Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
+              width: 1.0,
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(7),
+            child: Image.file(
+              file,
+              width: 50,
+              height: 50,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  _buildFallbackAvatar(theme, notification, category),
+            ),
+          ),
+        );
+      }
+    }
+    return _buildFallbackAvatar(theme, notification, category);
+  }
+
+  Widget _buildFallbackAvatar(
+    ThemeData theme,
+    NotificationModel notification,
+    CategoryModel category,
+  ) {
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        color: category.color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: category.color.withValues(alpha: 0.15),
+          width: 1.0,
+        ),
+      ),
+      child: Center(
+        child: HugeIcon(
+          icon: _getAppIcon(notification.packageName),
+          size: 24,
+          color: category.color,
+        ),
+      ),
+    );
+  }
+
+  List<List<dynamic>> _getAppIcon(String packageName) {
+    final pkg = packageName.toLowerCase();
+    if (pkg.contains('whatsapp')) return HugeIcons.strokeRoundedBubbleChat;
+    if (pkg.contains('telegram')) return HugeIcons.strokeRoundedTelegram;
+    if (pkg.contains('instagram')) return HugeIcons.strokeRoundedInstagram;
+    if (pkg.contains('twitter') || pkg.contains('x.android')) return HugeIcons.strokeRoundedTwitter;
+    if (pkg.contains('facebook')) return HugeIcons.strokeRoundedFacebook01;
+    if (pkg.contains('youtube')) return HugeIcons.strokeRoundedYoutube;
+    if (pkg.contains('gmail') || pkg.contains('mail')) return HugeIcons.strokeRoundedMail01;
+    if (pkg.contains('chrome') || pkg.contains('browser')) return HugeIcons.strokeRoundedBrowser;
+    if (pkg.contains('phone') || pkg.contains('dialer')) return HugeIcons.strokeRoundedSmartPhone01;
+    if (pkg.contains('sms') || pkg.contains('messaging') || pkg.contains('messages')) return HugeIcons.strokeRoundedMessage01;
+    if (pkg.contains('calendar')) return HugeIcons.strokeRoundedCalendar01;
+    if (pkg.contains('maps') || pkg.contains('uber') || pkg.contains('ola')) return HugeIcons.strokeRoundedLocation01;
+    if (pkg.contains('pay') || pkg.contains('gpay') || pkg.contains('phonepe') || pkg.contains('paytm')) return HugeIcons.strokeRoundedCreditCard;
+    if (pkg.contains('bank') || pkg.contains('hdfc') || pkg.contains('icici') || pkg.contains('sbi')) return HugeIcons.strokeRoundedBank;
+    if (pkg.contains('amazon') || pkg.contains('flipkart') || pkg.contains('myntra')) return HugeIcons.strokeRoundedShoppingBag01;
+    if (pkg.contains('zomato') || pkg.contains('swiggy') || pkg.contains('doordash')) return HugeIcons.strokeRoundedDeliveryTruck01;
+    if (pkg.contains('spotify') || pkg.contains('music')) return HugeIcons.strokeRoundedMusicNote01;
+    if (pkg.contains('netflix') || pkg.contains('hotstar') || pkg.contains('prime')) return HugeIcons.strokeRoundedFilm01;
+    return HugeIcons.strokeRoundedNotification01;
   }
 }
 

@@ -160,7 +160,9 @@ class NotificationDao extends DatabaseAccessor<AppDatabase>
 
   /// Mark a notification as dismissed.
   Future<void> markAsDismissed(String id) {
-    return (update(notifications)..where((t) => t.id.equals(id))).write(
+    return (update(notifications)
+          ..where((t) => t.id.equals(id) | t.id.like('$id%')))
+        .write(
       const NotificationsCompanion(isDismissed: Value(true)),
     );
   }

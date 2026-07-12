@@ -11,6 +11,7 @@ import '../../features/notification_details/notification_detail_screen.dart';
 import '../../features/search/search_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/categories/category_screen.dart';
+import '../../core/widgets/banner_ad_widget.dart';
 import '../theme/app_colors.dart';
 
 /// Route paths.
@@ -166,50 +167,56 @@ class MainShell extends StatelessWidget {
     return Scaffold(
       body: child,
       extendBody: false, // Don't extend body to avoid floating nav overlap
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-          border: Border(
-            top: BorderSide(
-              color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
-              width: 1.0,
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const BannerAdWidget(),
+          Container(
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+              border: Border(
+                top: BorderSide(
+                  color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
+                  width: 1.0,
+                ),
+              ),
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _NavItem(
+                      icon: HugeIcons.strokeRoundedDashboardCircle,
+                      label: 'Home',
+                      isSelected: currentIndex == 0,
+                      onTap: () => context.go(AppRoutes.dashboard),
+                    ),
+                    _NavItem(
+                      icon: HugeIcons.strokeRoundedClock01,
+                      label: 'Timeline',
+                      isSelected: currentIndex == 1,
+                      onTap: () => context.go(AppRoutes.timeline),
+                    ),
+                    _NavItem(
+                      icon: HugeIcons.strokeRoundedSearch01,
+                      label: 'Search',
+                      isSelected: currentIndex == 2,
+                      onTap: () => context.go(AppRoutes.search),
+                    ),
+                    _NavItem(
+                      icon: HugeIcons.strokeRoundedSettings01,
+                      label: 'Settings',
+                      isSelected: currentIndex == 3,
+                      onTap: () => context.go(AppRoutes.settings),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _NavItem(
-                  icon: HugeIcons.strokeRoundedDashboardCircle,
-                  label: 'Home',
-                  isSelected: currentIndex == 0,
-                  onTap: () => context.go(AppRoutes.dashboard),
-                ),
-                _NavItem(
-                  icon: HugeIcons.strokeRoundedClock01,
-                  label: 'Timeline',
-                  isSelected: currentIndex == 1,
-                  onTap: () => context.go(AppRoutes.timeline),
-                ),
-                _NavItem(
-                  icon: HugeIcons.strokeRoundedSearch01,
-                  label: 'Search',
-                  isSelected: currentIndex == 2,
-                  onTap: () => context.go(AppRoutes.search),
-                ),
-                _NavItem(
-                  icon: HugeIcons.strokeRoundedSettings01,
-                  label: 'Settings',
-                  isSelected: currentIndex == 3,
-                  onTap: () => context.go(AppRoutes.settings),
-                ),
-              ],
-            ),
-          ),
-        ),
+        ],
       ),
     );
   }

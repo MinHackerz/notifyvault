@@ -44,17 +44,16 @@ class NotificationModel {
 
   /// Create from platform channel map (data arriving from Android native).
   factory NotificationModel.fromPlatformData(Map<String, dynamic> map) {
+    final rawId = map['id'] as String? ?? 'unknown';
+    final timestampVal = map['timestamp'] as int? ?? DateTime.now().millisecondsSinceEpoch;
     return NotificationModel(
-      id: map['id'] as String? ??
-          '${map['packageName']}_${DateTime.now().millisecondsSinceEpoch}',
+      id: '${rawId}_$timestampVal',
       packageName: map['packageName'] as String? ?? 'unknown',
       appName: map['appName'] as String? ?? 'Unknown App',
       title: map['title'] as String?,
       body: map['body'] as String?,
       bigText: map['bigText'] as String?,
-      timestamp: map['timestamp'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(map['timestamp'] as int)
-          : DateTime.now(),
+      timestamp: DateTime.fromMillisecondsSinceEpoch(timestampVal),
       category: map['category'] as String? ?? 'other',
       importance: map['importance'] as int? ?? 3,
       isRead: map['isRead'] as bool? ?? false,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../app/theme/app_colors.dart';
 import '../../app/router/app_router.dart';
 import '../../providers/settings_providers.dart';
@@ -188,7 +189,10 @@ class _OnboardingPage extends StatelessWidget {
           const Spacer(flex: 2),
 
           // Visual illustration
-          visual,
+          visual
+              .animate()
+              .scale(duration: 400.ms, curve: Curves.easeOutBack)
+              .fadeIn(duration: 300.ms),
 
           const SizedBox(height: 40),
 
@@ -197,12 +201,15 @@ class _OnboardingPage extends StatelessWidget {
             title,
             style: theme.textTheme.headlineMedium?.copyWith(
               color: theme.colorScheme.onSurface,
-              fontWeight: FontWeight.normal,
+              fontWeight: FontWeight.w800,
               height: 1.2,
-              letterSpacing: -0.2,
+              letterSpacing: -0.6,
             ),
             textAlign: TextAlign.center,
-          ),
+          )
+              .animate()
+              .fadeIn(delay: 150.ms, duration: 300.ms)
+              .slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
 
           const SizedBox(height: 16),
 
@@ -214,7 +221,10 @@ class _OnboardingPage extends StatelessWidget {
               height: 1.5,
             ),
             textAlign: TextAlign.center,
-          ),
+          )
+              .animate()
+              .fadeIn(delay: 300.ms, duration: 300.ms)
+              .slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
 
           const Spacer(flex: 3),
         ],

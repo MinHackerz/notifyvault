@@ -55,59 +55,57 @@ class AppTheme {
     final isDark = brightness == Brightness.dark;
     final baseTextTheme = isDark ? ThemeData.dark().textTheme : ThemeData.light().textTheme;
     final textTheme = GoogleFonts.interTextTheme(baseTextTheme).copyWith(
-      displayLarge: GoogleFonts.instrumentSerif(
+      displayLarge: GoogleFonts.plusJakartaSans(
         textStyle: baseTextTheme.displayLarge?.copyWith(
-          fontStyle: FontStyle.italic,
-          fontWeight: FontWeight.normal,
+          fontWeight: FontWeight.w800,
           height: 1.1,
+          letterSpacing: -1.0,
           color: colorScheme.onSurface,
         ),
       ),
-      displayMedium: GoogleFonts.instrumentSerif(
+      displayMedium: GoogleFonts.plusJakartaSans(
         textStyle: baseTextTheme.displayMedium?.copyWith(
-          fontStyle: FontStyle.italic,
-          fontWeight: FontWeight.normal,
+          fontWeight: FontWeight.w800,
           height: 1.1,
+          letterSpacing: -0.5,
           color: colorScheme.onSurface,
         ),
       ),
-      displaySmall: GoogleFonts.instrumentSerif(
+      displaySmall: GoogleFonts.plusJakartaSans(
         textStyle: baseTextTheme.displaySmall?.copyWith(
-          fontStyle: FontStyle.italic,
-          fontWeight: FontWeight.normal,
+          fontWeight: FontWeight.w800,
           height: 1.1,
+          letterSpacing: -0.5,
           color: colorScheme.onSurface,
         ),
       ),
-      headlineLarge: GoogleFonts.instrumentSerif(
+      headlineLarge: GoogleFonts.plusJakartaSans(
         textStyle: baseTextTheme.headlineLarge?.copyWith(
-          fontStyle: FontStyle.italic,
-          fontWeight: FontWeight.normal,
+          fontWeight: FontWeight.w700,
           height: 1.15,
+          letterSpacing: -0.5,
           color: colorScheme.onSurface,
         ),
       ),
-      headlineMedium: GoogleFonts.instrumentSerif(
+      headlineMedium: GoogleFonts.plusJakartaSans(
         textStyle: baseTextTheme.headlineMedium?.copyWith(
-          fontStyle: FontStyle.italic,
-          fontWeight: FontWeight.normal,
+          fontWeight: FontWeight.w700,
           height: 1.15,
           color: colorScheme.onSurface,
         ),
       ),
-      headlineSmall: GoogleFonts.instrumentSerif(
+      headlineSmall: GoogleFonts.plusJakartaSans(
         textStyle: baseTextTheme.headlineSmall?.copyWith(
-          fontStyle: FontStyle.italic,
-          fontWeight: FontWeight.normal,
+          fontWeight: FontWeight.w600,
           height: 1.2,
           color: colorScheme.onSurface,
         ),
       ),
-      titleLarge: GoogleFonts.instrumentSerif(
+      titleLarge: GoogleFonts.plusJakartaSans(
         textStyle: baseTextTheme.titleLarge?.copyWith(
-          fontStyle: FontStyle.italic,
-          fontWeight: FontWeight.normal,
-          fontSize: 22,
+          fontWeight: FontWeight.w700,
+          fontSize: 20,
+          letterSpacing: -0.2,
           color: colorScheme.onSurface,
         ),
       ),
@@ -134,10 +132,10 @@ class AppTheme {
         systemOverlayStyle: isDark
             ? SystemUiOverlayStyle.light
             : SystemUiOverlayStyle.dark,
-        titleTextStyle: GoogleFonts.instrumentSerif(
-          fontSize: 22,
-          fontStyle: FontStyle.italic,
-          fontWeight: FontWeight.normal,
+        titleTextStyle: GoogleFonts.plusJakartaSans(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.2,
           color: isDark
               ? AppColors.onBackgroundDark
               : AppColors.onBackgroundLight,

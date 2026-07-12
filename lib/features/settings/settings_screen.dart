@@ -123,24 +123,7 @@ class SettingsScreen extends ConsumerWidget {
                 enabled: false,
                 onTap: () {},
               ),
-              _buildDivider(context),
-              _SettingsTile(
-                icon: HugeIcons.strokeRoundedDatabase02,
-                title: 'Seed Test Notifications',
-                subtitle: 'Insert 12 diverse test notifications',
-                iconColor: AppColors.primary,
-                onTap: () async {
-                  await ref.read(notificationRepositoryProvider).seedTestNotifications();
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Successfully seeded 12 test notifications!'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  }
-                },
-              ),
+
               _buildDivider(context),
               _SettingsTile(
                 icon: HugeIcons.strokeRoundedDelete02,
@@ -172,9 +155,7 @@ class SettingsScreen extends ConsumerWidget {
                 title: 'Privacy Policy',
                 subtitle: 'How we handle your data',
                 iconColor: AppColors.categoryWork,
-                onTap: () {
-                  // TODO: Link to privacy policy
-                },
+                onTap: () => _showPrivacyPolicyDialog(context),
               ),
             ],
           ),
@@ -446,6 +427,159 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showPrivacyPolicyDialog(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.categoryWork.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Center(
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedSecurityLock,
+                        color: AppColors.categoryWork,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      'Privacy Policy',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.5,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              
+              // Divider
+              Container(
+                height: 1.0,
+                color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
+              ),
+              const SizedBox(height: 16),
+              
+              // Scrollable Policy Content
+              Flexible(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildPolicySection(
+                        context,
+                        '1. Local-First Storage',
+                        'NotifyVault processes and stores all captured notifications locally on your device in a secure sandboxed database. No notification text, personal info, or application metadata is ever sent to external servers or shared with third parties.',
+                      ),
+                      const SizedBox(height: 12),
+                      _buildPolicySection(
+                        context,
+                        '2. Essential Device Permissions',
+                        '• Notification Access: Allows capture of incoming notifications.\n'
+                        '• Post Notifications: Allows system status updates in the status bar.\n'
+                        '• Boot Completed: Resumes capturing after device restart.\n'
+                        '• Query All Packages: Maps captured app package identifiers to human-readable names and icons.',
+                      ),
+                      const SizedBox(height: 12),
+                      _buildPolicySection(
+                        context,
+                        '3. Complete Data Ownership',
+                        'You can view, search, and delete your notification logs at any time. The "Clear All Data" setting deletes all records and cached app icons from your device permanently.',
+                      ),
+                      const SizedBox(height: 12),
+                      _buildPolicySection(
+                        context,
+                        '4. Optional Cloud Integration',
+                        'Optional features like cloud synchronization (coming soon) are fully opt-in and utilize end-to-end encryption, ensuring only you hold the decryption keys to your backed-up notifications.',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              
+              // Action Button
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'I Understand',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPolicySection(BuildContext context, String title, String body) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.onSurface,
+            fontSize: 13,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          body,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            height: 1.4,
+            fontSize: 11.5,
+          ),
+        ),
+      ],
     );
   }
 }
