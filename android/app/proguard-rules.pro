@@ -6,6 +6,10 @@
 -keep class io.flutter.** { *; }
 -keep class io.flutter.plugins.** { *; }
 
+# Keep MainActivity and all other Android Activities
+-keep class com.notifyvault.app.MainActivity { *; }
+-keep class * extends android.app.Activity { *; }
+
 # Firebase
 -keep class com.google.firebase.** { *; }
 

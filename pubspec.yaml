@@ -1,7 +1,7 @@
 name: notify_vault
 description: "Never Lose a Notification Again"
 publish_to: 'none'
-version: 1.0.0+3
+version: 1.0.0+5
 
 environment:
   sdk: ^3.12.2
