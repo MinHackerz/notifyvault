@@ -5,7 +5,7 @@ class AppConfig {
   // ─── App Info ───
   static const String appName = 'NotifyVault';
   static const String appTagline = 'Never Lose a Notification Again';
-  static const String appVersion = '1.0.0';
+  static const String appVersion = '1.0.1';
 
   // ─── Platform Channels ───
   static const String notificationMethodChannel =

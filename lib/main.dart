@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'app/app.dart';
+import 'core/helpers/ad_helper.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,6 +12,7 @@ Future<void> main() async {
   // Initialize Google Mobile Ads SDK
   try {
     await MobileAds.instance.initialize();
+    AdHelper.preloadRewardedAd();
   } catch (e) {
     debugPrint('Google Mobile Ads initialization failed: $e');
   }

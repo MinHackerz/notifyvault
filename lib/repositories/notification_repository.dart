@@ -75,6 +75,9 @@ class NotificationRepository {
       title: model.title,
       body: model.body,
       bigText: model.bigText,
+      appCategory: data['appCategory'] as String?,
+      notificationCategory: data['category'] as String?,
+      isMessagingStyle: data['isMessagingStyle'] as bool? ?? false,
     );
 
     final categorizedModel = model.copyWith(category: category);

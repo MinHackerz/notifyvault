@@ -1,101 +1,24 @@
 /// Keyword-based automatic categorization engine for notifications.
 ///
-/// Uses package name matching and content keyword analysis to assign
-/// a category to each notification.
+/// Uses dynamic Android app categories, native notification metadata,
+/// and content keyword analysis to assign a category to each notification.
 class CategoryService {
   CategoryService._();
 
   static final CategoryService instance = CategoryService._();
 
-  // ─── Package Name → Category mappings ───
-  static const Map<String, String> _packageCategories = {
-    // Banking
-    'com.sbi': 'banking',
-    'com.icici': 'banking',
-    'com.hdfc': 'banking',
-    'com.axis': 'banking',
-    'com.kotak': 'banking',
-    'com.pnb': 'banking',
-    'com.bob': 'banking',
-    'com.canara': 'banking',
-    'com.union': 'banking',
-    'com.idbi': 'banking',
-    'com.rbl': 'banking',
-    'com.yes': 'banking',
-    'com.indus': 'banking',
-
-    // Payments / UPI
-    'com.google.android.apps.nbu.paisa.user': 'payments', // GPay
-    'net.one97.paytm': 'payments',
-    'com.phonepe.app': 'payments',
-    'in.amazon.mShop.android.shopping': 'shopping',
-    'com.whatsapp': 'messages',
-    'com.whatsapp.w4b': 'messages',
-    'org.telegram.messenger': 'messages',
-    'com.discord': 'messages',
-    'com.Slack': 'work',
-
-    // Social
-    'com.instagram.android': 'social',
-    'com.facebook.katana': 'social',
-    'com.facebook.orca': 'social', // Messenger
-    'com.twitter.android': 'social',
-    'com.snapchat.android': 'social',
-    'com.linkedin.android': 'social',
-    'com.reddit.frontpage': 'social',
-    'com.pinterest': 'social',
-
-    // Email
-    'com.google.android.gm': 'email',
-    'com.microsoft.office.outlook': 'email',
-    'com.yahoo.mobile.client.android.mail': 'email',
-
-    // Shopping
-    'com.flipkart.android': 'shopping',
-    'com.myntra.android': 'shopping',
-    'com.snapdeal.main': 'shopping',
-    'club.cred': 'payments',
-
-    // Delivery
-    'in.swiggy.android': 'delivery',
-    'com.application.zomato': 'delivery',
-    'com.ubercab.eats': 'delivery',
-    'com.dunzo.user': 'delivery',
-    'com.blinkit.user': 'delivery',
-    'in.zepto.user': 'delivery',
-    'com.delhivery.riderApp': 'delivery',
-
-    // Entertainment
-    'com.netflix.mediaclient': 'entertainment',
-    'com.spotify.music': 'entertainment',
-    'com.google.android.youtube': 'entertainment',
-    'in.startv.hotstar': 'entertainment',
-    'com.jio.media.jiobeats': 'entertainment',
-
-    // Government
-    'nic.goi.aarogyasetu': 'government',
-    'in.org.npci.upiapp': 'government',
-    'com.csc.digilocker': 'government',
-
-    // Education
-    'com.byjus': 'education',
-    'com.unacademy.unacademyapp': 'education',
-    'com.duolingo': 'education',
-  };
-
   // ─── Content keyword patterns ───
   static const Map<String, List<String>> _keywordCategories = {
-    'otp': [
-      'otp',
-      'verification code',
-      'verify',
-      'one-time password',
-      'one time password',
-      'security code',
-      'login code',
-      'authentication code',
-      '2fa',
-      'two-factor',
+    'messages': [
+      'message',
+      'messages',
+      'chat',
+      'text',
+      'sms',
+      'pinged',
+      'sent a photo',
+      'sent a video',
+      'sticker',
     ],
     'banking': [
       'account',
@@ -173,7 +96,7 @@ class CategoryService {
       'promo',
       'flash sale',
       'hurry',
-      'don\'t miss',
+      "don't miss",
       'subscribe',
       'free trial',
       'upgrade',
@@ -198,6 +121,7 @@ class CategoryService {
       'income tax',
       'gst',
       'government',
+      'customs',
       'ministry',
     ],
     'education': [
@@ -214,30 +138,62 @@ class CategoryService {
     ],
   };
 
-  /// Categorize a notification based on package name and content.
+  /// Categorize a notification dynamically.
   String categorize({
     required String packageName,
     String? title,
     String? body,
     String? bigText,
+    String? appCategory,
+    String? notificationCategory,
+    bool isMessagingStyle = false,
   }) {
-    // 1. Try exact package match first
-    for (final entry in _packageCategories.entries) {
-      if (packageName.toLowerCase().contains(entry.key.toLowerCase())) {
-        return entry.value;
-      }
-    }
-
-    // 2. Analyze content keywords
     final content =
         '${title ?? ''} ${body ?? ''} ${bigText ?? ''}'.toLowerCase();
 
     if (content.isEmpty) return 'other';
 
-    // Check OTP first (highest priority)
+    // 1. Check OTP first (highest priority)
     if (_containsOtp(content)) return 'otp';
 
-    // Check other categories by keyword matching
+    // 2. Check native notification category metadata
+    if (notificationCategory != null) {
+      switch (notificationCategory.toLowerCase()) {
+        case 'msg':
+        case 'call':
+          return 'messages';
+        case 'email':
+          return 'email';
+        case 'promo':
+        case 'recommendation':
+          return 'promotions';
+        case 'social':
+          return isMessagingStyle ? 'messages' : 'social';
+        case 'transport':
+          return 'delivery';
+        case 'event':
+        case 'reminder':
+          return 'work';
+      }
+    }
+
+    // 3. Check Android system app category
+    if (appCategory != null) {
+      switch (appCategory.toLowerCase()) {
+        case 'game':
+        case 'audio':
+        case 'video':
+          return 'entertainment';
+        case 'social':
+          return isMessagingStyle ? 'messages' : 'social';
+        case 'productivity':
+          return 'work';
+        case 'maps':
+          return 'delivery';
+      }
+    }
+
+    // 4. Check other categories by keyword matching
     int bestScore = 0;
     String bestCategory = 'other';
 

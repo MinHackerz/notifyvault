@@ -7,6 +7,7 @@ import '../../providers/settings_providers.dart';
 import '../../providers/notification_providers.dart';
 import '../../providers/permission_providers.dart';
 import '../../core/widgets/section_header.dart';
+import '../../core/helpers/ad_helper.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -42,7 +43,10 @@ class SettingsScreen extends ConsumerWidget {
                 title: 'Theme',
                 subtitle: _themeModeLabel(themeMode),
                 iconColor: theme.colorScheme.primary,
-                onTap: () => _showThemeSelector(context, ref, themeMode),
+                onTap: () => _showAdAndProceed(
+                  context,
+                  () => _showThemeSelector(context, ref, themeMode),
+                ),
               ),
             ],
           ),
@@ -65,12 +69,12 @@ class SettingsScreen extends ConsumerWidget {
                 iconColor: AppColors.accent,
                 trailing: permissionState.when(
                   data: (granted) => Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: granted ? AppColors.success : AppColors.error,
-                      shape: BoxShape.circle,
-                    ),
+                     width: 8,
+                     height: 8,
+                     decoration: BoxDecoration(
+                       color: granted ? AppColors.success : AppColors.error,
+                       shape: BoxShape.circle,
+                     ),
                   ),
                   loading: () => const SizedBox(
                     width: 16,
@@ -93,8 +97,10 @@ class SettingsScreen extends ConsumerWidget {
                     ? 'Unlimited (Premium)'
                     : '$retentionDays days',
                 iconColor: AppColors.warning,
-                onTap: () =>
-                    _showRetentionSelector(context, ref, retentionDays),
+                onTap: () => _showAdAndProceed(
+                  context,
+                  () => _showRetentionSelector(context, ref, retentionDays),
+                ),
               ),
             ],
           ),
@@ -581,6 +587,19 @@ class SettingsScreen extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  void _showAdAndProceed(BuildContext context, VoidCallback onProceed) {
+    if (AdHelper.isRewardedAdLoaded) {
+      AdHelper.showRewardedAd(
+        onAdClosed: onProceed,
+        onRewardEarned: () {},
+      );
+    } else {
+      // If ad not loaded, preload next and open content directly
+      AdHelper.preloadRewardedAd();
+      onProceed();
+    }
   }
 }
 

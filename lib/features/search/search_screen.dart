@@ -10,6 +10,7 @@ import '../../core/widgets/notification_tile.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/section_header.dart';
 import '../../models/category_model.dart';
+import '../../core/widgets/banner_ad_widget.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -146,11 +147,18 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final theme = Theme.of(context);
 
     if (recentSearches.isEmpty) {
-      return EmptyState(
-        icon: HugeIcons.strokeRoundedSearch01,
-        title: 'Search your notifications',
-        subtitle:
-            'Find OTPs, amounts, app names, tracking numbers, or any keyword.',
+      return Column(
+        children: [
+          Expanded(
+            child: EmptyState(
+              icon: HugeIcons.strokeRoundedSearch01,
+              title: 'Search your notifications',
+              subtitle:
+                  'Find OTPs, amounts, app names, tracking numbers, or any keyword.',
+            ),
+          ),
+          const BannerAdWidget(),
+        ],
       );
     }
 
@@ -240,6 +248,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             }).toList(),
           ),
         ),
+        const Spacer(),
+        const BannerAdWidget(),
       ],
     );
   }
