@@ -38,7 +38,22 @@ final searchResultsProvider =
   final query = ref.watch(searchQueryProvider);
   final filter = ref.watch(searchFilterProvider);
 
-  if (query.trim().isEmpty) return [];
+  if (query.trim().isEmpty) {
+    if (filter.categoryId == null && filter.onlyUnread == null) {
+      return [];
+    }
+    final repo = ref.read(notificationRepositoryProvider);
+    List<NotificationModel> results;
+    if (filter.categoryId != null) {
+      results = await repo.getByCategory(filter.categoryId!, limit: 100);
+    } else {
+      results = await repo.getNotifications(limit: 100);
+    }
+    if (filter.onlyUnread != null) {
+      results = results.where((n) => filter.onlyUnread! ? !n.isRead : n.isRead).toList();
+    }
+    return results;
+  }
 
   // Debounce: cancel if query changes within 300ms
   final completer = Completer<List<NotificationModel>>();
