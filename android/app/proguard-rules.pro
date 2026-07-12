@@ -42,3 +42,25 @@
 -keep class com.google.android.gms.internal.ads.** { *; }
 -dontwarn com.google.android.gms.ads.**
 -dontwarn com.google.android.gms.internal.ads.**
+
+# AndroidX WorkManager (ROOT CAUSE of release crash)
+# R8 strips Room-generated classes used by WorkManager's internal WorkDatabase,
+# causing: "Failed to create an instance of androidx.work.impl.WorkDatabase"
+-keep class androidx.work.** { *; }
+-keep class * extends androidx.work.Worker { *; }
+-keep class * extends androidx.work.ListenableWorker { *; }
+-dontwarn androidx.work.**
+
+# AndroidX Room (used internally by WorkManager)
+-keep class * extends androidx.room.RoomDatabase { *; }
+-keep @androidx.room.Entity class * { *; }
+-keep @androidx.room.Dao interface * { *; }
+-dontwarn androidx.room.**
+
+# AndroidX Startup (InitializationProvider)
+-keep class androidx.startup.** { *; }
+-keep class * implements androidx.startup.Initializer { *; }
+
+# AndroidX Lifecycle
+-keep class androidx.lifecycle.** { *; }
+-dontwarn androidx.lifecycle.**
