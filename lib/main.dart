@@ -9,7 +9,11 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize Google Mobile Ads SDK
-  await MobileAds.instance.initialize();
+  try {
+    await MobileAds.instance.initialize();
+  } catch (e) {
+    debugPrint('Google Mobile Ads initialization failed: $e');
+  }
 
   // Lock orientation to portrait
   await SystemChrome.setPreferredOrientations([

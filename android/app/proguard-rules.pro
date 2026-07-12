@@ -36,3 +36,9 @@
 
 # Suppress Play Store Deferred Components warning
 -dontwarn com.google.android.play.core.**
+
+# Google Mobile Ads (AdMob)
+-keep class com.google.android.gms.ads.** { *; }
+-keep class com.google.android.gms.internal.ads.** { *; }
+-dontwarn com.google.android.gms.ads.**
+-dontwarn com.google.android.gms.internal.ads.**
