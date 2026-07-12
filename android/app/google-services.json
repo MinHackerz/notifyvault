@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "731414456919-1cp9m3hn5v0oj32vobnfr5ekl7f4e0dp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.notifyvault.app",
+            "certificate_hash": "2d2a09241da8960d970c830ecf9de59a70fb0e31"
+          }
+        },
+        {
           "client_id": "731414456919-isbfbon80089447bg6l6v1g5hu09k67k.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
