@@ -68,4 +68,31 @@ class NotificationChannelService {
       // Silently fail
     }
   }
+
+  /// Launch an app by its package name.
+  /// Returns true if the app was launched successfully, false otherwise.
+  Future<bool> launchApp(String packageName) async {
+    try {
+      final result = await _methodChannel.invokeMethod<bool>(
+        'launchApp',
+        {'packageName': packageName},
+      );
+      return result ?? false;
+    } on PlatformException catch (_) {
+      return false;
+    }
+  }
+
+  /// Get all installed apps with notification enabled status and saved icon paths.
+  Future<List<Map<String, dynamic>>> getInstalledApps() async {
+    try {
+      final result = await _methodChannel.invokeMethod<List>('getInstalledApps');
+      if (result == null) return [];
+      return result
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+    } on PlatformException catch (_) {
+      return [];
+    }
+  }
 }

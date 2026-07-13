@@ -10,6 +10,7 @@ import '../../models/category_model.dart';
 import '../../core/extensions/date_extensions.dart';
 import '../../core/extensions/context_extensions.dart';
 import '../../core/helpers/notification_parser.dart';
+import '../../core/helpers/launch_app_helper.dart';
 import '../../core/widgets/category_chip.dart';
 import '../../app/theme/app_colors.dart';
 
@@ -166,6 +167,45 @@ class NotificationDetailScreen extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Open App Button
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => _launchSourceApp(context, notification.packageName),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                          width: 1.0,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedArrowUpRight01,
+                            size: 14,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Open',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -492,38 +532,49 @@ class NotificationDetailScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _launchSourceApp(
+      BuildContext context, String packageName) async {
+    final launched = await LaunchAppHelper.launchApp(packageName);
+    if (!launched && context.mounted) {
+      context.showSnackBar('Could not open $packageName');
+    }
+  }
+
   Widget _buildAvatar(
     ThemeData theme,
     NotificationModel notification,
     CategoryModel category,
     bool isDark,
   ) {
-    if (notification.iconPath != null && notification.iconPath!.isNotEmpty) {
-      final file = File(notification.iconPath!);
-      if (file.existsSync()) {
-        return Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
-              width: 1.0,
-            ),
+    String? path = notification.iconPath;
+    if (path == null || path.isEmpty) {
+      path = '/data/user/0/com.notifyvault.app/files/icons/${notification.packageName}.png';
+    }
+
+    final file = File(path);
+    if (file.existsSync()) {
+      return Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
+            width: 1.0,
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(7),
-            child: Image.file(
-              file,
-              width: 50,
-              height: 50,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) =>
-                  _buildFallbackAvatar(theme, notification, category),
-            ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(7),
+          child: Image.file(
+            file,
+            width: 50,
+            height: 50,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) =>
+                _buildFallbackAvatar(theme, notification, category),
           ),
-        );
-      }
+        ),
+      );
     }
     return _buildFallbackAvatar(theme, notification, category);
   }

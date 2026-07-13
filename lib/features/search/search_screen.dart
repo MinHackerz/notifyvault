@@ -275,6 +275,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             final notification = list[index];
             return NotificationTile(
               notification: notification,
+              enableDismiss: false,
               onTap: () {
                 ref
                     .read(notificationRepositoryProvider)

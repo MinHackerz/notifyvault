@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import '../database/app_database.dart';
 import '../models/notification_model.dart';
 import '../core/services/category_service.dart';
@@ -69,6 +70,14 @@ class NotificationRepository {
       return;
     }
 
+    // Skip blocked apps — don't save their notifications
+    try {
+      final isBlocked = await _db.appPreferencesDao.isBlocked(model.packageName);
+      if (isBlocked) return;
+    } catch (e) {
+      debugPrint('Error checking blocked status: $e');
+    }
+
     // Auto-categorize
     final category = _categoryService.categorize(
       packageName: model.packageName,
@@ -118,6 +127,7 @@ class NotificationRepository {
     await _db.appDao.incrementCount(
       notification.packageName,
       notification.appName,
+      iconPath: notification.iconPath,
     );
   }
 
@@ -239,6 +249,18 @@ class NotificationRepository {
   /// Get category counts.
   Future<Map<String, int>> getCategoryCounts() =>
       _db.notificationDao.getCategoryCounts();
+
+  /// Get notification counts grouped by app since a date.
+  Future<Map<String, int>> getAppStatsSince(DateTime since) =>
+      _db.notificationDao.getNotificationCountsByApp(since);
+
+  /// Get total count since a date.
+  Future<int> getCountSince(DateTime since) =>
+      _db.notificationDao.getCountSince(since);
+
+  /// Get dismissed count since a date.
+  Future<int> getDismissedCountSince(DateTime since) =>
+      _db.notificationDao.getDismissedCountSince(since);
 
   /// Check notification permission.
   Future<bool> isPermissionGranted() =>

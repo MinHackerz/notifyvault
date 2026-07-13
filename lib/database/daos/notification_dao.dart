@@ -221,4 +221,41 @@ class NotificationDao extends DatabaseAccessor<AppDatabase>
     final result = await query.getSingle();
     return result.read(count) ?? 0;
   }
+
+  /// Get total notification count since a given date.
+  Future<int> getCountSince(DateTime since) async {
+    final count = notifications.id.count();
+    final query = selectOnly(notifications)
+      ..addColumns([count])
+      ..where(notifications.timestamp.isBiggerOrEqualValue(since));
+    final result = await query.getSingle();
+    return result.read(count) ?? 0;
+  }
+
+  /// Get dismissed notification count since a given date.
+  Future<int> getDismissedCountSince(DateTime since) async {
+    final count = notifications.id.count();
+    final query = selectOnly(notifications)
+      ..addColumns([count])
+      ..where(notifications.timestamp.isBiggerOrEqualValue(since) &
+          notifications.isDismissed.equals(true));
+    final result = await query.getSingle();
+    return result.read(count) ?? 0;
+  }
+
+  /// Get notification counts grouped by app (package name) since a given date.
+  Future<Map<String, int>> getNotificationCountsByApp(DateTime since) async {
+    final count = notifications.id.count();
+    final query = selectOnly(notifications)
+      ..addColumns([notifications.packageName, count])
+      ..where(notifications.timestamp.isBiggerOrEqualValue(since))
+      ..groupBy([notifications.packageName]);
+    final results = await query.get();
+    return Map.fromEntries(
+      results.map((row) => MapEntry(
+            row.read(notifications.packageName) ?? 'unknown',
+            row.read(count) ?? 0,
+          )),
+    );
+  }
 }

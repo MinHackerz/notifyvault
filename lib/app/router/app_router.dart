@@ -10,7 +10,9 @@ import '../../features/history/timeline_screen.dart';
 import '../../features/notification_details/notification_detail_screen.dart';
 import '../../features/search/search_screen.dart';
 import '../../features/settings/settings_screen.dart';
+import '../../features/settings/app_management_screen.dart';
 import '../../features/categories/category_screen.dart';
+import '../../features/statistics/statistics_screen.dart';
 import '../../core/widgets/banner_ad_widget.dart';
 import '../theme/app_colors.dart';
 
@@ -25,6 +27,8 @@ class AppRoutes {
   static const category = '/category/:id';
   static const search = '/search';
   static const settings = '/settings';
+  static const appManagement = '/app-management';
+  static const statistics = '/statistics';
 }
 
 /// GoRouter provider.
@@ -76,6 +80,16 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: AppRoutes.search,
             pageBuilder: (context, state) => CustomTransitionPage(
               child: const SearchScreen(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.statistics,
+            pageBuilder: (context, state) => CustomTransitionPage(
+              child: const StatisticsScreen(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
                 return FadeTransition(opacity: animation, child: child);
@@ -139,6 +153,27 @@ final routerProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+      GoRoute(
+        path: AppRoutes.appManagement,
+        pageBuilder: (context, state) {
+          return CustomTransitionPage(
+            child: const AppManagementScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.05),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeOutCubic,
+                )),
+                child: FadeTransition(opacity: animation, child: child),
+              );
+            },
+          );
+        },
+      ),
     ],
   );
 });
@@ -154,7 +189,8 @@ class MainShell extends StatelessWidget {
     if (location.startsWith('/dashboard')) return 0;
     if (location.startsWith('/timeline')) return 1;
     if (location.startsWith('/search')) return 2;
-    if (location.startsWith('/settings')) return 3;
+    if (location.startsWith('/statistics')) return 3;
+    if (location.startsWith('/settings')) return 4;
     return 0;
   }
 
@@ -206,9 +242,15 @@ class MainShell extends StatelessWidget {
                       onTap: () => context.go(AppRoutes.search),
                     ),
                     _NavItem(
+                      icon: HugeIcons.strokeRoundedChart,
+                      label: 'Stats',
+                      isSelected: currentIndex == 3,
+                      onTap: () => context.go(AppRoutes.statistics),
+                    ),
+                    _NavItem(
                       icon: HugeIcons.strokeRoundedSettings01,
                       label: 'Settings',
-                      isSelected: currentIndex == 3,
+                      isSelected: currentIndex == 4,
                       onTap: () => context.go(AppRoutes.settings),
                     ),
                   ],
@@ -245,7 +287,7 @@ class _NavItem extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(
-          horizontal: 14,
+          horizontal: 12,
           vertical: 6,
         ),
         decoration: BoxDecoration(
@@ -262,13 +304,13 @@ class _NavItem extends StatelessWidget {
               color: isSelected
                   ? theme.colorScheme.primary
                   : theme.colorScheme.onSurfaceVariant,
-              size: 22,
+              size: 20,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 3),
             Text(
               label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 color: isSelected
                     ? theme.colorScheme.primary

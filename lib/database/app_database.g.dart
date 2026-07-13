@@ -2081,6 +2081,330 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
   }
 }
 
+class $AppPreferencesTable extends AppPreferences
+    with TableInfo<$AppPreferencesTable, AppPreference> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AppPreferencesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _packageNameMeta = const VerificationMeta(
+    'packageName',
+  );
+  @override
+  late final GeneratedColumn<String> packageName = GeneratedColumn<String>(
+    'package_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _appNameMeta = const VerificationMeta(
+    'appName',
+  );
+  @override
+  late final GeneratedColumn<String> appName = GeneratedColumn<String>(
+    'app_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('normal'),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    packageName,
+    appName,
+    status,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'app_preferences';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AppPreference> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('package_name')) {
+      context.handle(
+        _packageNameMeta,
+        packageName.isAcceptableOrUnknown(
+          data['package_name']!,
+          _packageNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_packageNameMeta);
+    }
+    if (data.containsKey('app_name')) {
+      context.handle(
+        _appNameMeta,
+        appName.isAcceptableOrUnknown(data['app_name']!, _appNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_appNameMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {packageName};
+  @override
+  AppPreference map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AppPreference(
+      packageName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}package_name'],
+      )!,
+      appName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}app_name'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      ),
+    );
+  }
+
+  @override
+  $AppPreferencesTable createAlias(String alias) {
+    return $AppPreferencesTable(attachedDatabase, alias);
+  }
+}
+
+class AppPreference extends DataClass implements Insertable<AppPreference> {
+  final String packageName;
+  final String appName;
+
+  /// Status: 'normal', 'priority', 'blocked', 'spam'
+  final String status;
+  final DateTime? updatedAt;
+  const AppPreference({
+    required this.packageName,
+    required this.appName,
+    required this.status,
+    this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['package_name'] = Variable<String>(packageName);
+    map['app_name'] = Variable<String>(appName);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    return map;
+  }
+
+  AppPreferencesCompanion toCompanion(bool nullToAbsent) {
+    return AppPreferencesCompanion(
+      packageName: Value(packageName),
+      appName: Value(appName),
+      status: Value(status),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
+  }
+
+  factory AppPreference.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AppPreference(
+      packageName: serializer.fromJson<String>(json['packageName']),
+      appName: serializer.fromJson<String>(json['appName']),
+      status: serializer.fromJson<String>(json['status']),
+      updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'packageName': serializer.toJson<String>(packageName),
+      'appName': serializer.toJson<String>(appName),
+      'status': serializer.toJson<String>(status),
+      'updatedAt': serializer.toJson<DateTime?>(updatedAt),
+    };
+  }
+
+  AppPreference copyWith({
+    String? packageName,
+    String? appName,
+    String? status,
+    Value<DateTime?> updatedAt = const Value.absent(),
+  }) => AppPreference(
+    packageName: packageName ?? this.packageName,
+    appName: appName ?? this.appName,
+    status: status ?? this.status,
+    updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+  );
+  AppPreference copyWithCompanion(AppPreferencesCompanion data) {
+    return AppPreference(
+      packageName: data.packageName.present
+          ? data.packageName.value
+          : this.packageName,
+      appName: data.appName.present ? data.appName.value : this.appName,
+      status: data.status.present ? data.status.value : this.status,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppPreference(')
+          ..write('packageName: $packageName, ')
+          ..write('appName: $appName, ')
+          ..write('status: $status, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(packageName, appName, status, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AppPreference &&
+          other.packageName == this.packageName &&
+          other.appName == this.appName &&
+          other.status == this.status &&
+          other.updatedAt == this.updatedAt);
+}
+
+class AppPreferencesCompanion extends UpdateCompanion<AppPreference> {
+  final Value<String> packageName;
+  final Value<String> appName;
+  final Value<String> status;
+  final Value<DateTime?> updatedAt;
+  final Value<int> rowid;
+  const AppPreferencesCompanion({
+    this.packageName = const Value.absent(),
+    this.appName = const Value.absent(),
+    this.status = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AppPreferencesCompanion.insert({
+    required String packageName,
+    required String appName,
+    this.status = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : packageName = Value(packageName),
+       appName = Value(appName);
+  static Insertable<AppPreference> custom({
+    Expression<String>? packageName,
+    Expression<String>? appName,
+    Expression<String>? status,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (packageName != null) 'package_name': packageName,
+      if (appName != null) 'app_name': appName,
+      if (status != null) 'status': status,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AppPreferencesCompanion copyWith({
+    Value<String>? packageName,
+    Value<String>? appName,
+    Value<String>? status,
+    Value<DateTime?>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return AppPreferencesCompanion(
+      packageName: packageName ?? this.packageName,
+      appName: appName ?? this.appName,
+      status: status ?? this.status,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (packageName.present) {
+      map['package_name'] = Variable<String>(packageName.value);
+    }
+    if (appName.present) {
+      map['app_name'] = Variable<String>(appName.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppPreferencesCompanion(')
+          ..write('packageName: $packageName, ')
+          ..write('appName: $appName, ')
+          ..write('status: $status, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2088,10 +2412,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $AppsTable apps = $AppsTable(this);
   late final $SyncQueueTable syncQueue = $SyncQueueTable(this);
+  late final $AppPreferencesTable appPreferences = $AppPreferencesTable(this);
   late final NotificationDao notificationDao = NotificationDao(
     this as AppDatabase,
   );
   late final AppDao appDao = AppDao(this as AppDatabase);
+  late final AppPreferencesDao appPreferencesDao = AppPreferencesDao(
+    this as AppDatabase,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2101,6 +2429,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     categories,
     apps,
     syncQueue,
+    appPreferences,
   ];
 }
 
@@ -3140,6 +3469,191 @@ typedef $$SyncQueueTableProcessedTableManager =
       SyncQueueData,
       PrefetchHooks Function()
     >;
+typedef $$AppPreferencesTableCreateCompanionBuilder =
+    AppPreferencesCompanion Function({
+      required String packageName,
+      required String appName,
+      Value<String> status,
+      Value<DateTime?> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$AppPreferencesTableUpdateCompanionBuilder =
+    AppPreferencesCompanion Function({
+      Value<String> packageName,
+      Value<String> appName,
+      Value<String> status,
+      Value<DateTime?> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$AppPreferencesTableFilterComposer
+    extends Composer<_$AppDatabase, $AppPreferencesTable> {
+  $$AppPreferencesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get packageName => $composableBuilder(
+    column: $table.packageName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get appName => $composableBuilder(
+    column: $table.appName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AppPreferencesTableOrderingComposer
+    extends Composer<_$AppDatabase, $AppPreferencesTable> {
+  $$AppPreferencesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get packageName => $composableBuilder(
+    column: $table.packageName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get appName => $composableBuilder(
+    column: $table.appName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AppPreferencesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AppPreferencesTable> {
+  $$AppPreferencesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get packageName => $composableBuilder(
+    column: $table.packageName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get appName =>
+      $composableBuilder(column: $table.appName, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$AppPreferencesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AppPreferencesTable,
+          AppPreference,
+          $$AppPreferencesTableFilterComposer,
+          $$AppPreferencesTableOrderingComposer,
+          $$AppPreferencesTableAnnotationComposer,
+          $$AppPreferencesTableCreateCompanionBuilder,
+          $$AppPreferencesTableUpdateCompanionBuilder,
+          (
+            AppPreference,
+            BaseReferences<_$AppDatabase, $AppPreferencesTable, AppPreference>,
+          ),
+          AppPreference,
+          PrefetchHooks Function()
+        > {
+  $$AppPreferencesTableTableManager(
+    _$AppDatabase db,
+    $AppPreferencesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AppPreferencesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AppPreferencesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AppPreferencesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> packageName = const Value.absent(),
+                Value<String> appName = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<DateTime?> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AppPreferencesCompanion(
+                packageName: packageName,
+                appName: appName,
+                status: status,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String packageName,
+                required String appName,
+                Value<String> status = const Value.absent(),
+                Value<DateTime?> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AppPreferencesCompanion.insert(
+                packageName: packageName,
+                appName: appName,
+                status: status,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AppPreferencesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AppPreferencesTable,
+      AppPreference,
+      $$AppPreferencesTableFilterComposer,
+      $$AppPreferencesTableOrderingComposer,
+      $$AppPreferencesTableAnnotationComposer,
+      $$AppPreferencesTableCreateCompanionBuilder,
+      $$AppPreferencesTableUpdateCompanionBuilder,
+      (
+        AppPreference,
+        BaseReferences<_$AppDatabase, $AppPreferencesTable, AppPreference>,
+      ),
+      AppPreference,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3151,4 +3665,6 @@ class $AppDatabaseManager {
   $$AppsTableTableManager get apps => $$AppsTableTableManager(_db, _db.apps);
   $$SyncQueueTableTableManager get syncQueue =>
       $$SyncQueueTableTableManager(_db, _db.syncQueue);
+  $$AppPreferencesTableTableManager get appPreferences =>
+      $$AppPreferencesTableTableManager(_db, _db.appPreferences);
 }

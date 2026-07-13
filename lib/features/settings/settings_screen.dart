@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:go_router/go_router.dart';
 import '../../app/config/app_config.dart';
 import '../../app/theme/app_colors.dart';
+import '../../app/router/app_router.dart';
 import '../../providers/settings_providers.dart';
 import '../../providers/notification_providers.dart';
 import '../../providers/permission_providers.dart';
+import '../../providers/app_management_providers.dart';
 import '../../core/widgets/section_header.dart';
 import '../../core/helpers/ad_helper.dart';
 
@@ -100,6 +103,20 @@ class SettingsScreen extends ConsumerWidget {
                 onTap: () => _showAdAndProceed(
                   context,
                   () => _showRetentionSelector(context, ref, retentionDays),
+                ),
+              ),
+              _buildDivider(context),
+              _SettingsTile(
+                icon: HugeIcons.strokeRoundedDashboardSquare01,
+                title: 'App Management',
+                subtitle: 'Priority, block & spam apps',
+                iconColor: AppColors.categorySocial,
+                onTap: () => _showAdAndProceed(
+                  context,
+                  () {
+                    ref.read(appManagementUnlockedProvider.notifier).unlock();
+                    context.push(AppRoutes.appManagement);
+                  },
                 ),
               ),
             ],

@@ -15,13 +15,14 @@ class AppDao extends DatabaseAccessor<AppDatabase> with _$AppDaoMixin {
   }
 
   /// Increment the notification count for an app.
-  Future<void> incrementCount(String packageName, String appName) async {
+  Future<void> incrementCount(String packageName, String appName, {String? iconPath}) async {
     final existing = await getApp(packageName);
     if (existing != null) {
       await (update(apps)..where((t) => t.packageName.equals(packageName)))
           .write(AppsCompanion(
         notificationCount: Value(existing.notificationCount + 1),
         lastNotificationAt: Value(DateTime.now()),
+        iconPath: iconPath != null ? Value(iconPath) : const Value.absent(),
       ));
     } else {
       await upsertApp(AppsCompanion.insert(
@@ -29,6 +30,7 @@ class AppDao extends DatabaseAccessor<AppDatabase> with _$AppDaoMixin {
         appName: appName,
         notificationCount: const Value(1),
         lastNotificationAt: Value(DateTime.now()),
+        iconPath: Value(iconPath),
       ));
     }
   }

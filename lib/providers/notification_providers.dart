@@ -3,6 +3,7 @@ import '../repositories/notification_repository.dart';
 import '../models/notification_model.dart';
 import '../core/helpers/date_helper.dart';
 import '../database/app_database.dart';
+import 'app_management_providers.dart';
 
 /// Singleton notification repository provider.
 final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
@@ -119,4 +120,35 @@ final favoritesStreamProvider =
     StreamProvider<List<NotificationModel>>((ref) {
   final repo = ref.watch(notificationRepositoryProvider);
   return repo.watchFavorites();
+});
+
+/// Notifications sorted with priority apps at the top, spam at the bottom.
+final prioritySortedNotificationsProvider =
+    Provider<AsyncValue<List<NotificationModel>>>((ref) {
+  final notificationsAsync = ref.watch(notificationStreamProvider);
+  final priorityPkgsAsync = ref.watch(priorityPackagesProvider);
+  final spamPkgsAsync = ref.watch(spamPackagesProvider);
+
+  return notificationsAsync.whenData((notifications) {
+    final priorityPkgs = priorityPkgsAsync.whenData((v) => v).value ?? <String>{};
+    final spamPkgs = spamPkgsAsync.whenData((v) => v).value ?? <String>{};
+
+    if (priorityPkgs.isEmpty && spamPkgs.isEmpty) return notifications;
+
+    final priority = <NotificationModel>[];
+    final normal = <NotificationModel>[];
+    final spam = <NotificationModel>[];
+
+    for (final n in notifications) {
+      if (priorityPkgs.contains(n.packageName)) {
+        priority.add(n);
+      } else if (spamPkgs.contains(n.packageName)) {
+        spam.add(n);
+      } else {
+        normal.add(n);
+      }
+    }
+
+    return [...priority, ...normal, ...spam];
+  });
 });

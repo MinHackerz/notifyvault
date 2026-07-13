@@ -34,6 +34,7 @@ class AppConfig {
   static const String keyThemeMode = 'theme_mode';
   static const String keyNotificationPermission = 'notification_permission';
   static const String keyRetentionPeriod = 'retention_period';
+  static const String keyAppManagementUnlocked = 'app_mgmt_unlocked_session';
 
   // ─── Animation Durations ───
   static const Duration animFast = Duration(milliseconds: 200);

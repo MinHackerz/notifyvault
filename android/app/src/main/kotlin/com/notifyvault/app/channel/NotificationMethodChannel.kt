@@ -1,8 +1,14 @@
 package com.notifyvault.app.channel
 
+import android.app.AppOpsManager
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
@@ -11,6 +17,8 @@ import com.notifyvault.app.service.NotificationCaptureService
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
+import java.io.File
+import java.io.FileOutputStream
 
 /**
  * Sets up Flutter MethodChannel and EventChannel for notification communication.
@@ -72,6 +80,79 @@ class NotificationMethodChannel(private val flutterEngine: FlutterEngine) {
                     } else {
                         result.error("INVALID_ARGUMENT", "Key is required", null)
                     }
+                }
+
+                "launchApp" -> {
+                    val packageName = call.argument<String>("packageName")
+                    if (packageName != null) {
+                        try {
+                            val intent = activity.packageManager.getLaunchIntentForPackage(packageName)
+                            if (intent != null) {
+                                activity.startActivity(intent)
+                                result.success(true)
+                            } else {
+                                result.success(false)
+                            }
+                        } catch (e: Exception) {
+                            result.success(false)
+                        }
+                    } else {
+                        result.error("INVALID_ARGUMENT", "Package name is required", null)
+                    }
+                }
+
+                "getInstalledApps" -> {
+                    Thread {
+                        try {
+                            val pm = activity.packageManager
+                            val packages = pm.getInstalledPackages(PackageManager.GET_META_DATA)
+                            val appsList = ArrayList<Map<String, Any?>>()
+                            
+                            val appOps = activity.getSystemService(Context.APP_OPS_SERVICE) as? android.app.AppOpsManager
+
+                            for (pkgInfo in packages) {
+                                val appInfo = pkgInfo.applicationInfo ?: continue
+                                val packageName = pkgInfo.packageName ?: continue
+                                
+                                // Filter: skip our own package
+                                if (packageName == activity.packageName) continue
+                                
+                                // User-facing filter: has launch intent OR not a system app
+                                val isSystem = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+                                val hasLaunchIntent = pm.getLaunchIntentForPackage(packageName) != null
+                                
+                                if (!hasLaunchIntent && isSystem) {
+                                    continue
+                                }
+                                
+                                // Check if notifications are enabled
+                                val enabled = isNotificationEnabled(activity, appOps, packageName, appInfo.uid)
+                                if (!enabled) {
+                                    continue
+                                }
+                                
+                                val appName = pm.getApplicationLabel(appInfo).toString()
+                                val iconPath = saveAppIcon(activity, packageName)
+                                
+                                val appMap = mapOf(
+                                    "packageName" to packageName,
+                                    "appName" to appName,
+                                    "iconPath" to iconPath,
+                                    "isNotificationsEnabled" to true
+                                )
+                                appsList.add(appMap)
+                            }
+                            
+                            mainHandler.post {
+                                result.success(appsList)
+                            }
+                        } catch (e: Exception) {
+                            Log.e("NotifyVault", "Error in getInstalledApps: ${e.message}")
+                            mainHandler.post {
+                                result.success(emptyList<Map<String, Any?>>())
+                            }
+                        }
+                    }.start()
                 }
 
                 else -> result.notImplemented()
@@ -144,4 +225,79 @@ class NotificationMethodChannel(private val flutterEngine: FlutterEngine) {
             Log.e("NotifyVault", "Failed to force rebind: ${e.message}")
         }
     }
+
+    private fun isNotificationEnabled(
+        context: Context,
+        appOps: AppOpsManager?,
+        packageName: String,
+        uid: Int
+    ): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return context.packageManager.checkPermission(
+                android.Manifest.permission.POST_NOTIFICATIONS,
+                packageName
+            ) == PackageManager.PERMISSION_GRANTED
+        }
+        
+        if (appOps != null) {
+            try {
+                val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    appOps.unsafeCheckOpNoThrow("android:post_notification", uid, packageName)
+                } else {
+                    @Suppress("DEPRECATION")
+                    appOps.checkOpNoThrow("android:post_notification", uid, packageName)
+                }
+                return mode == AppOpsManager.MODE_ALLOWED
+            } catch (e: Exception) {
+                // Ignore/fallback
+            }
+        }
+        return true
+    }
+
+    private fun saveAppIcon(context: Context, packageName: String): String? {
+        try {
+            val iconDir = File(context.filesDir, "icons")
+            if (!iconDir.exists()) {
+                iconDir.mkdirs()
+            }
+            val iconFile = File(iconDir, "$packageName.png")
+
+            // If already cached, just return the path
+            if (iconFile.exists()) {
+                return iconFile.absolutePath
+            }
+
+            val pm = context.packageManager
+            val appInfo = pm.getApplicationInfo(packageName, 0)
+            val drawable = try {
+                pm.getApplicationIcon(appInfo)
+            } catch (e: Exception) {
+                null
+            } ?: return null
+
+            // Convert drawable to Bitmap
+            val bitmap = if (drawable is android.graphics.drawable.BitmapDrawable) {
+                drawable.bitmap
+            } else {
+                val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 96
+                val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 96
+                val bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                val canvas = Canvas(bmp)
+                drawable.setBounds(0, 0, canvas.width, canvas.height)
+                drawable.draw(canvas)
+                bmp
+            }
+
+            // Save to disk
+            FileOutputStream(iconFile).use { out ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            }
+            return iconFile.absolutePath
+        } catch (e: Exception) {
+            Log.e("NotifyVault", "Error saving app icon for $packageName: ${e.message}")
+            return null
+        }
+    }
 }
+

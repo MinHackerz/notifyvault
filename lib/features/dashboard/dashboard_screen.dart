@@ -8,193 +8,220 @@ import '../../app/config/app_config.dart';
 import '../../app/router/app_router.dart';
 import '../../providers/notification_providers.dart';
 import '../../providers/permission_providers.dart';
+import '../../providers/app_management_providers.dart';
 import '../../models/category_model.dart';
 import '../../core/widgets/category_chip.dart';
 import '../../core/widgets/notification_tile.dart';
 import '../../core/widgets/shimmer_loading.dart';
 import '../../core/widgets/section_header.dart';
 
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  Future<void> _onRefresh() async {
+    // Invalidate all relevant providers to force re-fetch
+    ref.invalidate(notificationStreamProvider);
+    ref.invalidate(todayCountProvider);
+    ref.invalidate(unreadCountProvider);
+    ref.invalidate(activeAppsTodayProvider);
+    ref.invalidate(totalCountProvider);
+    ref.invalidate(priorityPackagesProvider);
+    ref.invalidate(spamPackagesProvider);
+
+    // Wait a short moment for providers to re-evaluate
+    await Future.delayed(const Duration(milliseconds: 500));
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final permissionState = ref.watch(notificationPermissionProvider);
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          // Professional App Bar
-          SliverAppBar(
-            expandedHeight: 110,
-            floating: false,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 16, bottom: 12),
-              title: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AppConfig.appName,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.8,
-                      color: theme.colorScheme.onSurface,
-                      fontSize: 20,
-                    ),
-                  ),
-                  Text(
-                    _getGreeting(),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: isDark
-                      ? LinearGradient(
-                          colors: [AppColors.secondaryDark, AppColors.backgroundDark],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                        )
-                      : LinearGradient(
-                          colors: [theme.colorScheme.primary.withValues(alpha: 0.05), Colors.transparent],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                        ),
-                ),
-              ),
-            ),
-            actions: [
-              permissionState.when(
-                data: (granted) => Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: GestureDetector(
-                    onTap: granted
-                        ? () => _showAboutDialog(context)
-                        : () => context.push(AppRoutes.permission),
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: granted
-                              ? theme.colorScheme.primary.withValues(alpha: 0.2)
-                              : AppColors.warning.withValues(alpha: 0.3),
-                          width: 1.0,
-                        ),
+      body: RefreshIndicator(
+        onRefresh: _onRefresh,
+        color: theme.colorScheme.primary,
+        backgroundColor: theme.colorScheme.surface,
+        displacement: 60,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            // Professional App Bar
+            SliverAppBar(
+              expandedHeight: 110,
+              floating: false,
+              pinned: true,
+              flexibleSpace: FlexibleSpaceBar(
+                titlePadding: const EdgeInsets.only(left: 16, bottom: 12),
+                title: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppConfig.appName,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.8,
+                        color: theme.colorScheme.onSurface,
+                        fontSize: 20,
                       ),
-                      child: granted
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(7),
-                              child: Image.asset(
-                                isDark
-                                    ? 'assets/icons/app_icon_dark.png'
-                                    : 'assets/icons/app_icon.png',
-                                width: 36,
-                                height: 36,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          : const Center(
-                              child: HugeIcon(
-                                icon: HugeIcons.strokeRoundedAlertCircle,
-                                color: AppColors.warning,
-                                size: 16,
-                              ),
-                            ),
                     ),
+                    Text(
+                      _getGreeting(),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                background: Container(
+                  decoration: BoxDecoration(
+                    gradient: isDark
+                        ? LinearGradient(
+                            colors: [AppColors.secondaryDark, AppColors.backgroundDark],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          )
+                        : LinearGradient(
+                            colors: [theme.colorScheme.primary.withValues(alpha: 0.05), Colors.transparent],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
                   ),
                 ),
-                loading: () => const SizedBox.shrink(),
-                error: (_, _) => const SizedBox.shrink(),
               ),
-            ],
-          ),
-
-          // Permission banner if not granted
-          permissionState.when(
-            data: (granted) {
-              if (granted) {
-                return const SliverToBoxAdapter(child: SizedBox.shrink());
-              }
-              return SliverToBoxAdapter(
-                child: _PermissionBanner(
-                  onTap: () => context.push(AppRoutes.permission),
+              actions: [
+                permissionState.when(
+                  data: (granted) => Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: GestureDetector(
+                      onTap: granted
+                          ? () => _showAboutDialog(context)
+                          : () => context.push(AppRoutes.permission),
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: granted
+                                ? theme.colorScheme.primary.withValues(alpha: 0.2)
+                                : AppColors.warning.withValues(alpha: 0.3),
+                            width: 1.0,
+                          ),
+                        ),
+                        child: granted
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(7),
+                                child: Image.asset(
+                                  isDark
+                                      ? 'assets/icons/app_icon_dark.png'
+                                      : 'assets/icons/app_icon.png',
+                                  width: 36,
+                                  height: 36,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : const Center(
+                                child: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedAlertCircle,
+                                  color: AppColors.warning,
+                                  size: 16,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ),
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, _) => const SizedBox.shrink(),
                 ),
-              );
-            },
-            loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
-            error: (_, _) => const SliverToBoxAdapter(child: SizedBox.shrink()),
-          ),
-
-          // Section 1: Overview
-          const SliverToBoxAdapter(
-            child: SectionHeader(
-              index: '01',
-              title: 'Overview',
+              ],
             ),
-          ),
 
-          // Stats cards
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-              child: _StatsGrid(),
+            // Permission banner if not granted
+            permissionState.when(
+              data: (granted) {
+                if (granted) {
+                  return const SliverToBoxAdapter(child: SizedBox.shrink());
+                }
+                return SliverToBoxAdapter(
+                  child: _PermissionBanner(
+                    onTap: () => context.push(AppRoutes.permission),
+                  ),
+                );
+              },
+              loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+              error: (_, _) => const SliverToBoxAdapter(child: SizedBox.shrink()),
             ),
-          ),
 
-          // Section 2: Categories
-          const SliverToBoxAdapter(
-            child: SectionHeader(
-              index: '02',
-              title: 'Categories',
+            // Section 1: Overview
+            const SliverToBoxAdapter(
+              child: SectionHeader(
+                index: '01',
+                title: 'Overview',
+              ),
             ),
-          ),
 
-          // Quick category chips
-          SliverToBoxAdapter(
-            child: _CategoryQuickAccess(),
-          ),
+            // Stats cards
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                child: _StatsGrid(),
+              ),
+            ),
 
-          // Section 3: Recent Activity
-          SliverToBoxAdapter(
-            child: SectionHeader(
-              index: '03',
-              title: 'Recent Activity',
-              action: TextButton.icon(
-                onPressed: () => context.go(AppRoutes.timeline),
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowRight01,
-                  size: 14,
-                  color: theme.colorScheme.primary,
-                ),
-                label: const Text('View All', style: TextStyle(fontSize: 11)),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            // Section 2: Categories
+            const SliverToBoxAdapter(
+              child: SectionHeader(
+                index: '02',
+                title: 'Categories',
+              ),
+            ),
+
+            // Quick category chips
+            SliverToBoxAdapter(
+              child: _CategoryQuickAccess(),
+            ),
+
+            // Section 3: Recent Activity
+            SliverToBoxAdapter(
+              child: SectionHeader(
+                index: '03',
+                title: 'Recent Activity',
+                action: TextButton.icon(
+                  onPressed: () => context.go(AppRoutes.timeline),
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowRight01,
+                    size: 14,
+                    color: theme.colorScheme.primary,
+                  ),
+                  label: const Text('View All', style: TextStyle(fontSize: 11)),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // Recent notifications list
-          _RecentNotifications(),
+            // Recent notifications list (priority sorted)
+            _RecentNotifications(),
 
-          // Bottom padding
-          const SliverToBoxAdapter(
-            child: SizedBox(height: 32),
-          ),
-        ],
+            // Bottom padding
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 32),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -547,7 +574,8 @@ class _CategoryQuickAccess extends StatelessWidget {
 class _RecentNotifications extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notificationsAsync = ref.watch(notificationStreamProvider);
+    final notificationsAsync = ref.watch(prioritySortedNotificationsProvider);
+    final priorityPkgs = ref.watch(priorityPackagesProvider).whenData((v) => v).value ?? <String>{};
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -607,8 +635,10 @@ class _RecentNotifications extends ConsumerWidget {
           delegate: SliverChildBuilderDelegate(
             (context, index) {
               final notification = recent[index];
+              final isPriority = priorityPkgs.contains(notification.packageName);
               return NotificationTile(
                 notification: notification,
+                isPriority: isPriority,
                 onTap: () {
                   ref
                       .read(notificationRepositoryProvider)
