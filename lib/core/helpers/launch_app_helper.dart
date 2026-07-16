@@ -23,4 +23,25 @@ class LaunchAppHelper {
       return false;
     }
   }
+
+  /// Attempt to open the specific notification content using:
+  /// 1. Active notification's contentIntent (if still in shade)
+  /// 2. Stored deep-link URI
+  /// 3. Normal app launch as fallback
+  static Future<bool> launchNotificationContent({
+    required String packageName,
+    String? notificationKey,
+    String? contentUri,
+  }) async {
+    final launched = await NotificationChannelService.instance
+        .openNotificationContent(
+      packageName: packageName,
+      notificationKey: notificationKey,
+      contentUri: contentUri,
+    );
+    if (launched) return true;
+
+    // Ultimate fallback
+    return launchApp(packageName);
+  }
 }

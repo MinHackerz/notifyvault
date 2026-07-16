@@ -101,6 +101,62 @@ class NotificationMethodChannel(private val flutterEngine: FlutterEngine) {
                     }
                 }
 
+                "openNotificationContent" -> {
+                    val packageName = call.argument<String>("packageName")
+                    val notificationKey = call.argument<String>("notificationKey")
+                    val contentUri = call.argument<String>("contentUri")
+
+                    if (packageName == null) {
+                        result.error("INVALID_ARGUMENT", "Package name is required", null)
+                        return@setMethodCallHandler
+                    }
+
+                    try {
+                        // Strategy 1: Try to fire contentIntent of an active notification
+                        val service = NotificationCaptureService.instance
+                        if (service != null && notificationKey != null) {
+                            val activeNotifications = service.activeNotifications
+                            val matchingSbn = activeNotifications?.find { sbn ->
+                                sbn.key == notificationKey ||
+                                sbn.key.startsWith(notificationKey) ||
+                                notificationKey.startsWith(sbn.key)
+                            }
+                            if (matchingSbn?.notification?.contentIntent != null) {
+                                matchingSbn.notification.contentIntent.send()
+                                Log.d("NotifyVault", "Fired contentIntent for active notification: $notificationKey")
+                                result.success(true)
+                                return@setMethodCallHandler
+                            }
+                        }
+
+                        // Strategy 2: Try to open stored content URI
+                        if (contentUri != null && contentUri.isNotEmpty()) {
+                            try {
+                                val intent = Intent.parseUri(contentUri, Intent.URI_INTENT_SCHEME)
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                activity.startActivity(intent)
+                                Log.d("NotifyVault", "Opened content URI: $contentUri")
+                                result.success(true)
+                                return@setMethodCallHandler
+                            } catch (e: Exception) {
+                                Log.w("NotifyVault", "Failed to open content URI: ${e.message}")
+                            }
+                        }
+
+                        // Strategy 3: Fall back to launching the app
+                        val launchIntent = activity.packageManager.getLaunchIntentForPackage(packageName)
+                        if (launchIntent != null) {
+                            activity.startActivity(launchIntent)
+                            result.success(true)
+                        } else {
+                            result.success(false)
+                        }
+                    } catch (e: Exception) {
+                        Log.e("NotifyVault", "Error in openNotificationContent: ${e.message}")
+                        result.success(false)
+                    }
+                }
+
                 "getInstalledApps" -> {
                     Thread {
                         try {

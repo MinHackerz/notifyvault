@@ -83,6 +83,30 @@ class NotificationChannelService {
     }
   }
 
+  /// Open notification content using the hybrid 3-tier strategy:
+  /// 1. Fire contentIntent of active notification (if still in shade)
+  /// 2. Open stored content URI (deep-link)
+  /// 3. Fall back to launching the app
+  Future<bool> openNotificationContent({
+    required String packageName,
+    String? notificationKey,
+    String? contentUri,
+  }) async {
+    try {
+      final result = await _methodChannel.invokeMethod<bool>(
+        'openNotificationContent',
+        {
+          'packageName': packageName,
+          'notificationKey': notificationKey,
+          'contentUri': contentUri,
+        },
+      );
+      return result ?? false;
+    } on PlatformException catch (_) {
+      return false;
+    }
+  }
+
   /// Get all installed apps with notification enabled status and saved icon paths.
   Future<List<Map<String, dynamic>>> getInstalledApps() async {
     try {

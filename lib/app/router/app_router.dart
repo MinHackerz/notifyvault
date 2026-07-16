@@ -1,8 +1,11 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
+import '../../app/config/app_config.dart';
 import '../../providers/settings_providers.dart';
 import '../../features/splash/splash_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
@@ -231,22 +234,38 @@ class _MainShellState extends ConsumerState<MainShell> {
     });
   }
 
-  void _checkAndShowTour() {
-    final hasSeenTour = ref.read(appTourCompleteProvider);
-    if (!hasSeenTour) {
-      _initTutorial();
-      tutorialCoachMark.show(context: context);
-    }
+  Future<void> _checkAndShowTour() async {
+    // Read directly from SharedPreferences to avoid the race condition
+    // where the Notifier's initial synchronous value (false) is read
+    // before the async _load() completes.
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenTour = prefs.getBool(AppConfig.keyAppTourComplete) ?? false;
+    if (hasSeenTour || !mounted) return;
+
+    // Wait for layout to fully settle so GlobalKeys resolve to correct positions.
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (!mounted) return;
+
+    _initTutorial();
+    tutorialCoachMark.show(context: context);
   }
 
   void _initTutorial() {
     tutorialCoachMark = TutorialCoachMark(
       targets: _createTargets(),
-      colorShadow: Colors.black,
+      colorShadow: const Color(0xFF0B0F19),
       textSkip: "SKIP",
-      textStyleSkip: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 16),
-      paddingFocus: 10,
-      opacityShadow: 0.85,
+      textStyleSkip: TextStyle(
+        color: Colors.white.withOpacity(0.6),
+        fontWeight: FontWeight.w600,
+        fontSize: 14,
+        letterSpacing: 0.5,
+      ),
+      paddingFocus: 8,
+      opacityShadow: 0.88,
+      focusAnimationDuration: const Duration(milliseconds: 400),
+      unFocusAnimationDuration: const Duration(milliseconds: 400),
+      pulseAnimationDuration: const Duration(milliseconds: 800),
       onFinish: () {
         ref.read(appTourCompleteProvider.notifier).complete();
       },
@@ -258,208 +277,90 @@ class _MainShellState extends ConsumerState<MainShell> {
   }
 
   List<TargetFocus> _createTargets() {
+    const totalSteps = 5;
     return [
-      TargetFocus(
-        identify: "dashboard",
+      _buildTarget(
+        identify: 'dashboard',
         keyTarget: _keyDashboard,
-        alignSkip: Alignment.topRight,
-        contents: [
-          TargetContent(
-            align: ContentAlign.top,
-            builder: (context, controller) {
-              return Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    )
-                  ]
-                ),
-                child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text("Home", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  const Text("View a summary of your unread notifications, recent activities, and quick insights.", style: TextStyle(fontSize: 16)),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => controller.next(),
-                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onPrimary),
-                    child: const Text("Next"),
-                  ),
-                ],
-              ),);
-            },
-          ),
-        ],
+        icon: HugeIcons.strokeRoundedDashboardCircle,
+        title: 'Home',
+        description: 'Your notification overview — unread counts, recent activity, and quick insights at a glance.',
+        step: 1,
+        totalSteps: totalSteps,
       ),
-      TargetFocus(
-        identify: "timeline",
+      _buildTarget(
+        identify: 'timeline',
         keyTarget: _keyTimeline,
-        alignSkip: Alignment.topRight,
-        contents: [
-          TargetContent(
-            align: ContentAlign.top,
-            builder: (context, controller) {
-              return Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    )
-                  ]
-                ),
-                child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text("Timeline", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  const Text("Browse all your notifications chronologically. Filter by apps or date.", style: TextStyle(fontSize: 16)),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => controller.next(),
-                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onPrimary),
-                    child: const Text("Next"),
-                  ),
-                ],
-              ),);
-            },
-          ),
-        ],
+        icon: HugeIcons.strokeRoundedClock01,
+        title: 'Timeline',
+        description: 'Browse notifications chronologically. Filter by app or date range.',
+        step: 2,
+        totalSteps: totalSteps,
       ),
-      TargetFocus(
-        identify: "search",
+      _buildTarget(
+        identify: 'search',
         keyTarget: _keySearch,
-        alignSkip: Alignment.topRight,
-        contents: [
-          TargetContent(
-            align: ContentAlign.top,
-            builder: (context, controller) {
-              return Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    )
-                  ]
-                ),
-                child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text("Search", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  const Text("Quickly find specific notifications across all your connected apps.", style: TextStyle(fontSize: 16)),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => controller.next(),
-                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onPrimary),
-                    child: const Text("Next"),
-                  ),
-                ],
-              ),);
-            },
-          ),
-        ],
+        icon: HugeIcons.strokeRoundedSearch01,
+        title: 'Search',
+        description: 'Instantly find any notification across all your connected apps.',
+        step: 3,
+        totalSteps: totalSteps,
       ),
-      TargetFocus(
-        identify: "statistics",
+      _buildTarget(
+        identify: 'statistics',
         keyTarget: _keyStatistics,
-        alignSkip: Alignment.topRight,
-        contents: [
-          TargetContent(
-            align: ContentAlign.top,
-            builder: (context, controller) {
-              return Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    )
-                  ]
-                ),
-                child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text("Statistics", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  const Text("Gain insights into which apps are sending the most notifications.", style: TextStyle(fontSize: 16)),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => controller.next(),
-                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onPrimary),
-                    child: const Text("Next"),
-                  ),
-                ],
-              ),);
-            },
-          ),
-        ],
+        icon: HugeIcons.strokeRoundedChart,
+        title: 'Statistics',
+        description: 'Discover patterns — see which apps notify you the most.',
+        step: 4,
+        totalSteps: totalSteps,
       ),
-      TargetFocus(
-        identify: "settings",
+      _buildTarget(
+        identify: 'settings',
         keyTarget: _keySettings,
-        alignSkip: Alignment.topRight,
-        contents: [
-          TargetContent(
-            align: ContentAlign.top,
-            builder: (context, controller) {
-              return Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    )
-                  ]
-                ),
-                child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text("Settings", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  const Text("Customize your experience, manage read-out-loud apps, and configure lock screen playback behavior.", style: TextStyle(fontSize: 16)),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => controller.next(),
-                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onPrimary),
-                    child: const Text("Finish"),
-                  ),
-                ],
-              ),);
-            },
-          ),
-        ],
+        icon: HugeIcons.strokeRoundedSettings01,
+        title: 'Settings',
+        description: 'Customize your experience, manage read-out-loud, and configure playback.',
+        step: 5,
+        totalSteps: totalSteps,
+        isLast: true,
       ),
     ];
+  }
+
+  TargetFocus _buildTarget({
+    required String identify,
+    required GlobalKey keyTarget,
+    required List<List<dynamic>> icon,
+    required String title,
+    required String description,
+    required int step,
+    required int totalSteps,
+    bool isLast = false,
+  }) {
+    return TargetFocus(
+      identify: identify,
+      keyTarget: keyTarget,
+      alignSkip: Alignment.topRight,
+      shape: ShapeLightFocus.RRect,
+      radius: 12,
+      contents: [
+        TargetContent(
+          align: ContentAlign.top,
+          builder: (context, controller) {
+            return _TutorialCard(
+              icon: icon,
+              title: title,
+              description: description,
+              step: step,
+              totalSteps: totalSteps,
+              isLast: isLast,
+              onNext: () => controller.next(),
+            );
+          },
+        ),
+      ],
+    );
   }
 
   static int _currentIndex(BuildContext context) {
@@ -603,6 +504,192 @@ class _NavItem extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Reusable tutorial tooltip card with frosted-glass aesthetic.
+class _TutorialCard extends StatelessWidget {
+  final List<List<dynamic>> icon;
+  final String title;
+  final String description;
+  final int step;
+  final int totalSteps;
+  final bool isLast;
+  final VoidCallback onNext;
+
+  const _TutorialCard({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.step,
+    required this.totalSteps,
+    required this.isLast,
+    required this.onNext,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryColor = theme.colorScheme.primary;
+
+    // Theme-adaptive colors
+    final cardColors = isDark
+        ? [const Color(0xFF1E293B).withOpacity(0.95), const Color(0xFF0F172A).withOpacity(0.98)]
+        : [Colors.white.withOpacity(0.97), const Color(0xFFF8FAFC).withOpacity(0.98)];
+    final borderColor = isDark ? primaryColor.withOpacity(0.2) : const Color(0xFFE2E8F0);
+    final titleColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final descColor = isDark ? Colors.white.withOpacity(0.6) : const Color(0xFF64748B);
+    final inactiveDotColor = isDark ? Colors.white.withOpacity(0.15) : const Color(0xFFE2E8F0);
+    final shadowColor = isDark ? Colors.black.withOpacity(0.3) : Colors.black.withOpacity(0.08);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: cardColors,
+        ),
+        border: Border.all(color: borderColor, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: primaryColor.withOpacity(isDark ? 0.08 : 0.06),
+            blurRadius: 24,
+            spreadRadius: 0,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: shadowColor,
+            blurRadius: 16,
+            spreadRadius: -4,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Step indicator + icon row
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: primaryColor.withOpacity(isDark ? 0.15 : 0.08),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: primaryColor.withOpacity(isDark ? 0.3 : 0.15),
+                          width: 0.5,
+                        ),
+                      ),
+                      child: Text(
+                        '$step of $totalSteps',
+                        style: TextStyle(
+                          color: primaryColor,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: primaryColor.withOpacity(isDark ? 0.1 : 0.06),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: HugeIcon(icon: icon, color: primaryColor, size: 18),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: titleColor,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  description,
+                  style: TextStyle(
+                    color: descColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    height: 1.5,
+                    letterSpacing: 0.1,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: List.generate(totalSteps, (i) {
+                          final isActive = i < step;
+                          return Container(
+                            width: isActive ? 16 : 6,
+                            height: 4,
+                            margin: const EdgeInsets.only(right: 4),
+                            decoration: BoxDecoration(
+                              color: isActive ? primaryColor : inactiveDotColor,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: onNext,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [primaryColor, primaryColor.withOpacity(0.85)],
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: primaryColor.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          isLast ? 'Done' : 'Next',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

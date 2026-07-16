@@ -54,7 +54,9 @@ class AppTheme {
   static ThemeData _buildTheme(ColorScheme colorScheme, Brightness brightness) {
     final isDark = brightness == Brightness.dark;
     final baseTextTheme = isDark ? ThemeData.dark().textTheme : ThemeData.light().textTheme;
-    final textTheme = GoogleFonts.interTextTheme(baseTextTheme).copyWith(
+
+    // Unified font: Plus Jakarta Sans throughout for a cohesive premium feel.
+    final textTheme = GoogleFonts.plusJakartaSansTextTheme(baseTextTheme).copyWith(
       displayLarge: GoogleFonts.plusJakartaSans(
         textStyle: baseTextTheme.displayLarge?.copyWith(
           fontWeight: FontWeight.w800,
@@ -73,9 +75,9 @@ class AppTheme {
       ),
       displaySmall: GoogleFonts.plusJakartaSans(
         textStyle: baseTextTheme.displaySmall?.copyWith(
-          fontWeight: FontWeight.w800,
-          height: 1.1,
-          letterSpacing: -0.5,
+          fontWeight: FontWeight.w700,
+          height: 1.15,
+          letterSpacing: -0.3,
           color: colorScheme.onSurface,
         ),
       ),
@@ -90,14 +92,15 @@ class AppTheme {
       headlineMedium: GoogleFonts.plusJakartaSans(
         textStyle: baseTextTheme.headlineMedium?.copyWith(
           fontWeight: FontWeight.w700,
-          height: 1.15,
+          height: 1.2,
+          letterSpacing: -0.2,
           color: colorScheme.onSurface,
         ),
       ),
       headlineSmall: GoogleFonts.plusJakartaSans(
         textStyle: baseTextTheme.headlineSmall?.copyWith(
           fontWeight: FontWeight.w600,
-          height: 1.2,
+          height: 1.25,
           color: colorScheme.onSurface,
         ),
       ),
@@ -107,6 +110,73 @@ class AppTheme {
           fontSize: 20,
           letterSpacing: -0.2,
           color: colorScheme.onSurface,
+        ),
+      ),
+      titleMedium: GoogleFonts.plusJakartaSans(
+        textStyle: baseTextTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          fontSize: 16,
+          letterSpacing: -0.1,
+          color: colorScheme.onSurface,
+        ),
+      ),
+      titleSmall: GoogleFonts.plusJakartaSans(
+        textStyle: baseTextTheme.titleSmall?.copyWith(
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+          letterSpacing: 0,
+          color: colorScheme.onSurface,
+        ),
+      ),
+      bodyLarge: GoogleFonts.plusJakartaSans(
+        textStyle: baseTextTheme.bodyLarge?.copyWith(
+          fontWeight: FontWeight.w400,
+          fontSize: 16,
+          height: 1.5,
+          letterSpacing: 0,
+          color: colorScheme.onSurface,
+        ),
+      ),
+      bodyMedium: GoogleFonts.plusJakartaSans(
+        textStyle: baseTextTheme.bodyMedium?.copyWith(
+          fontWeight: FontWeight.w400,
+          fontSize: 14,
+          height: 1.5,
+          letterSpacing: 0,
+          color: colorScheme.onSurface,
+        ),
+      ),
+      bodySmall: GoogleFonts.plusJakartaSans(
+        textStyle: baseTextTheme.bodySmall?.copyWith(
+          fontWeight: FontWeight.w400,
+          fontSize: 12,
+          height: 1.4,
+          letterSpacing: 0.1,
+          color: colorScheme.onSurfaceVariant,
+        ),
+      ),
+      labelLarge: GoogleFonts.plusJakartaSans(
+        textStyle: baseTextTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+          letterSpacing: 0.1,
+          color: colorScheme.onSurface,
+        ),
+      ),
+      labelMedium: GoogleFonts.plusJakartaSans(
+        textStyle: baseTextTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+          letterSpacing: 0.2,
+          color: colorScheme.onSurfaceVariant,
+        ),
+      ),
+      labelSmall: GoogleFonts.plusJakartaSans(
+        textStyle: baseTextTheme.labelSmall?.copyWith(
+          fontWeight: FontWeight.w500,
+          fontSize: 11,
+          letterSpacing: 0.3,
+          color: colorScheme.onSurfaceVariant,
         ),
       ),
     );
@@ -166,7 +236,7 @@ class AppTheme {
           width: 1.0,
         ),
         backgroundColor: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
-        labelStyle: GoogleFonts.inter(
+        labelStyle: GoogleFonts.plusJakartaSans(
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
@@ -179,12 +249,12 @@ class AppTheme {
         selectedItemColor: colorScheme.primary,
         unselectedItemColor: colorScheme.onSurfaceVariant,
         elevation: 0,
-        selectedLabelStyle: GoogleFonts.inter(
+        selectedLabelStyle: GoogleFonts.plusJakartaSans(
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          letterSpacing: 0.2,
+          letterSpacing: 0.1,
         ),
-        unselectedLabelStyle: GoogleFonts.inter(
+        unselectedLabelStyle: GoogleFonts.plusJakartaSans(
           fontSize: 11,
           fontWeight: FontWeight.w500,
         ),
@@ -216,7 +286,7 @@ class AppTheme {
         ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        hintStyle: GoogleFonts.inter(
+        hintStyle: GoogleFonts.plusJakartaSans(
           color: colorScheme.onSurfaceVariant,
           fontSize: 14,
           fontWeight: FontWeight.w400,
@@ -233,10 +303,10 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: GoogleFonts.inter(
+          textStyle: GoogleFonts.plusJakartaSans(
             fontSize: 15,
             fontWeight: FontWeight.w700,
-            letterSpacing: 0.2,
+            letterSpacing: 0.1,
           ),
         ),
       ),
@@ -245,7 +315,7 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: colorScheme.primary,
-          textStyle: GoogleFonts.inter(
+          textStyle: GoogleFonts.plusJakartaSans(
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
@@ -318,10 +388,10 @@ class AppTheme {
             : AppColors.surfaceLight,
         indicatorColor: colorScheme.primary.withValues(alpha: 0.1),
         labelTextStyle: WidgetStatePropertyAll(
-          GoogleFonts.inter(
+          GoogleFonts.plusJakartaSans(
             fontSize: 11,
             fontWeight: FontWeight.w600,
-            letterSpacing: 0.2,
+            letterSpacing: 0.1,
           ),
         ),
       ),

@@ -19,11 +19,24 @@ import '../../core/widgets/section_header.dart';
 final dashboardTabProvider = NotifierProvider<DashboardTabNotifier, String>(DashboardTabNotifier.new);
 
 class DashboardTabNotifier extends Notifier<String> {
+  bool _hasAutoSelected = false;
+
   @override
-  String build() => 'priority';
-  
+  String build() {
+    // Reset auto-selection when the notifier is rebuilt (e.g., provider invalidated)
+    _hasAutoSelected = false;
+    return 'priority';
+  }
+
   // ignore: use_setters_to_change_properties
   void setTab(String tab) => state = tab;
+
+  /// Called once when data is first available to pick the right default.
+  void autoSelectIfNeeded(bool hasPriorityNotifications) {
+    if (_hasAutoSelected) return;
+    _hasAutoSelected = true;
+    state = hasPriorityNotifications ? 'priority' : 'normal';
+  }
 }
 
 final recentActivityNotificationsProvider = Provider.autoDispose<AsyncValue<Map<String, List<NotificationModel>>>>((ref) {
@@ -31,33 +44,40 @@ final recentActivityNotificationsProvider = Provider.autoDispose<AsyncValue<Map<
   final priorityPkgsAsync = ref.watch(priorityPackagesProvider);
   final spamPkgsAsync = ref.watch(spamPackagesProvider);
 
-  return notificationsAsync.whenData((notifications) {
-    final priorityPkgs = priorityPkgsAsync.whenData((v) => v).value ?? <String>{};
-    final spamPkgs = spamPkgsAsync.whenData((v) => v).value ?? <String>{};
+  // Wait for ALL three providers to have data before classifying.
+  // This prevents misclassification when priority/spam lists haven't loaded yet.
+  if (notificationsAsync is AsyncLoading ||
+      priorityPkgsAsync is AsyncLoading ||
+      spamPkgsAsync is AsyncLoading) {
+    return const AsyncLoading();
+  }
 
-    final now = DateTime.now();
-    
-    final priority = <NotificationModel>[];
-    final normal = <NotificationModel>[];
-    final spam = <NotificationModel>[];
+  final notifications = notificationsAsync.whenData((v) => v).value ?? [];
+  final priorityPkgs = priorityPkgsAsync.whenData((v) => v).value ?? <String>{};
+  final spamPkgs = spamPkgsAsync.whenData((v) => v).value ?? <String>{};
 
-    for (final n in notifications) {
-      if (n.timestamp.year == now.year && n.timestamp.month == now.month && n.timestamp.day == now.day) {
-        if (priorityPkgs.contains(n.packageName)) {
-          priority.add(n);
-        } else if (spamPkgs.contains(n.packageName)) {
-          spam.add(n);
-        } else {
-          normal.add(n);
-        }
+  final now = DateTime.now();
+
+  final priority = <NotificationModel>[];
+  final normal = <NotificationModel>[];
+  final spam = <NotificationModel>[];
+
+  for (final n in notifications) {
+    if (n.timestamp.year == now.year && n.timestamp.month == now.month && n.timestamp.day == now.day) {
+      if (priorityPkgs.contains(n.packageName)) {
+        priority.add(n);
+      } else if (spamPkgs.contains(n.packageName)) {
+        spam.add(n);
+      } else {
+        normal.add(n);
       }
     }
+  }
 
-    return {
-      'priority': priority,
-      'normal': normal,
-      'spam': spam,
-    };
+  return AsyncData({
+    'priority': priority,
+    'normal': normal,
+    'spam': spam,
   });
 });
 
@@ -80,6 +100,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     ref.invalidate(spamPackagesProvider);
     ref.invalidate(prioritySortedNotificationsProvider);
     ref.invalidate(recentActivityNotificationsProvider);
+    ref.invalidate(dashboardTabProvider);
 
     // Wait a short moment for providers to re-evaluate
     await Future.delayed(const Duration(milliseconds: 500));
@@ -681,8 +702,6 @@ class _RecentNotifications extends ConsumerStatefulWidget {
 }
 
 class _RecentNotificationsState extends ConsumerState<_RecentNotifications> {
-  bool _hasSetInitialTab = false;
-
   @override
   Widget build(BuildContext context) {
     final dataAsync = ref.watch(recentActivityNotificationsProvider);
@@ -694,17 +713,13 @@ class _RecentNotificationsState extends ConsumerState<_RecentNotifications> {
     return dataAsync.when(
       data: (data) {
         final priority = data['priority']!;
-        
-        if (!_hasSetInitialTab) {
-           _hasSetInitialTab = true;
-           if (priority.isEmpty) {
-             Future.microtask(() {
-               if (mounted) {
-                 ref.read(dashboardTabProvider.notifier).setTab('normal');
-               }
-             });
-           }
-        }
+
+        // Schedule auto-select after the current frame to avoid modifying state during build.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            ref.read(dashboardTabProvider.notifier).autoSelectIfNeeded(priority.isNotEmpty);
+          }
+        });
 
         final notifications = data[selectedTab]!;
 

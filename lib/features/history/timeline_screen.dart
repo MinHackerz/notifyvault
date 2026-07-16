@@ -31,10 +31,23 @@ class TimelineScreen extends ConsumerWidget {
         ),
         actions: [
           IconButton(
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedFilter,
-              size: 20,
-              color: hasActiveFilter ? Theme.of(context).colorScheme.primary : null,
+            icon: Container(
+              padding: hasActiveFilter ? const EdgeInsets.all(6) : EdgeInsets.zero,
+              decoration: hasActiveFilter
+                  ? BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    )
+                  : null,
+              child: HugeIcon(
+                icon: hasActiveFilter
+                    ? HugeIcons.strokeRoundedFilterHorizontal
+                    : HugeIcons.strokeRoundedFilter,
+                size: 20,
+                color: hasActiveFilter
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onSurface,
+              ),
             ),
             onPressed: () => _showFilterSheet(context, ref),
           ),

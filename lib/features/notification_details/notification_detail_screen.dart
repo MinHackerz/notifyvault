@@ -174,7 +174,7 @@ class NotificationDetailScreen extends ConsumerWidget {
                 Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: () => _launchSourceApp(context, notification.packageName),
+                    onTap: () => _launchSourceApp(context, notification),
                     borderRadius: BorderRadius.circular(10),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -533,10 +533,19 @@ class NotificationDetailScreen extends ConsumerWidget {
   }
 
   Future<void> _launchSourceApp(
-      BuildContext context, String packageName) async {
-    final launched = await LaunchAppHelper.launchApp(packageName);
+      BuildContext context, NotificationModel notification) async {
+    // Extract the original notification key from the stored ID.
+    // ID format: "{originalKey}_{timestampMs}"
+    final id = notification.id;
+    final lastUnderscore = id.lastIndexOf('_');
+    final notificationKey = lastUnderscore > 0 ? id.substring(0, lastUnderscore) : id;
+
+    final launched = await LaunchAppHelper.launchNotificationContent(
+      packageName: notification.packageName,
+      notificationKey: notificationKey,
+    );
     if (!launched && context.mounted) {
-      context.showSnackBar('Could not open $packageName');
+      context.showSnackBar('Could not open ${notification.appName}');
     }
   }
 
