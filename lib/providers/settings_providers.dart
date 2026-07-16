@@ -55,6 +55,29 @@ class OnboardingNotifier extends Notifier<bool> {
   }
 }
 
+/// App tour completion provider.
+final appTourCompleteProvider =
+    NotifierProvider<AppTourNotifier, bool>(AppTourNotifier.new);
+
+class AppTourNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    _load();
+    return false;
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    state = prefs.getBool(AppConfig.keyAppTourComplete) ?? false;
+  }
+
+  Future<void> complete() async {
+    state = true;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(AppConfig.keyAppTourComplete, true);
+  }
+}
+
 /// Notification retention period in days.
 final retentionPeriodProvider =
     NotifierProvider<RetentionPeriodNotifier, int>(RetentionPeriodNotifier.new);
@@ -76,5 +99,58 @@ class RetentionPeriodNotifier extends Notifier<int> {
     state = days;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(AppConfig.keyRetentionPeriod, days);
+  }
+}
+
+/// TTS Playback Mode.
+enum TtsPlaybackMode {
+  anytime,
+  onlyUnlocked,
+  onlyLocked,
+}
+
+final ttsPlaybackModeProvider =
+    NotifierProvider<TtsPlaybackModeNotifier, TtsPlaybackMode>(TtsPlaybackModeNotifier.new);
+
+class TtsPlaybackModeNotifier extends Notifier<TtsPlaybackMode> {
+  @override
+  TtsPlaybackMode build() {
+    _load();
+    return TtsPlaybackMode.anytime;
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final index = prefs.getInt(AppConfig.keyTtsPlaybackMode) ?? 0;
+    state = TtsPlaybackMode.values[index];
+  }
+
+  Future<void> setMode(TtsPlaybackMode mode) async {
+    state = mode;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(AppConfig.keyTtsPlaybackMode, mode.index);
+  }
+}
+
+/// Settings tour completion provider.
+final settingsTourCompleteProvider =
+    NotifierProvider<SettingsTourNotifier, bool>(SettingsTourNotifier.new);
+
+class SettingsTourNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    _load();
+    return false;
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    state = prefs.getBool(AppConfig.keySettingsTourComplete) ?? false;
+  }
+
+  Future<void> complete() async {
+    state = true;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(AppConfig.keySettingsTourComplete, true);
   }
 }

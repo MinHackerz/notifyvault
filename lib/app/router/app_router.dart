@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
+import '../../providers/settings_providers.dart';
 import '../../features/splash/splash_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/onboarding/permission_screen.dart';
@@ -11,6 +13,7 @@ import '../../features/notification_details/notification_detail_screen.dart';
 import '../../features/search/search_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/settings/app_management_screen.dart';
+import '../../features/settings/read_out_loud_apps_screen.dart';
 import '../../features/categories/category_screen.dart';
 import '../../features/statistics/statistics_screen.dart';
 import '../../core/widgets/banner_ad_widget.dart';
@@ -28,6 +31,7 @@ class AppRoutes {
   static const search = '/search';
   static const settings = '/settings';
   static const appManagement = '/app-management';
+  static const readOutLoudApps = '/read-out-loud-apps';
   static const statistics = '/statistics';
 }
 
@@ -174,15 +178,289 @@ final routerProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+      GoRoute(
+        path: AppRoutes.readOutLoudApps,
+        pageBuilder: (context, state) {
+          return CustomTransitionPage(
+            child: const ReadOutLoudAppsScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.05),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeOutCubic,
+                )),
+                child: FadeTransition(opacity: animation, child: child),
+              );
+            },
+          );
+        },
+      ),
     ],
   );
 });
 
 /// Main shell widget with flat minimalist bottom navigation.
-class MainShell extends StatelessWidget {
+class MainShell extends ConsumerStatefulWidget {
   final Widget child;
 
   const MainShell({super.key, required this.child});
+
+  @override
+  ConsumerState<MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends ConsumerState<MainShell> {
+  late TutorialCoachMark tutorialCoachMark;
+  
+  // Keys for tutorial targets
+  final GlobalKey _keyDashboard = GlobalKey();
+  final GlobalKey _keyTimeline = GlobalKey();
+  final GlobalKey _keySearch = GlobalKey();
+  final GlobalKey _keyStatistics = GlobalKey();
+  final GlobalKey _keySettings = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndShowTour();
+    });
+  }
+
+  void _checkAndShowTour() {
+    final hasSeenTour = ref.read(appTourCompleteProvider);
+    if (!hasSeenTour) {
+      _initTutorial();
+      tutorialCoachMark.show(context: context);
+    }
+  }
+
+  void _initTutorial() {
+    tutorialCoachMark = TutorialCoachMark(
+      targets: _createTargets(),
+      colorShadow: Colors.black,
+      textSkip: "SKIP",
+      textStyleSkip: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 16),
+      paddingFocus: 10,
+      opacityShadow: 0.85,
+      onFinish: () {
+        ref.read(appTourCompleteProvider.notifier).complete();
+      },
+      onSkip: () {
+        ref.read(appTourCompleteProvider.notifier).complete();
+        return true;
+      },
+    );
+  }
+
+  List<TargetFocus> _createTargets() {
+    return [
+      TargetFocus(
+        identify: "dashboard",
+        keyTarget: _keyDashboard,
+        alignSkip: Alignment.topRight,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) {
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    )
+                  ]
+                ),
+                child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Home", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  const Text("View a summary of your unread notifications, recent activities, and quick insights.", style: TextStyle(fontSize: 16)),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => controller.next(),
+                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onPrimary),
+                    child: const Text("Next"),
+                  ),
+                ],
+              ),);
+            },
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: "timeline",
+        keyTarget: _keyTimeline,
+        alignSkip: Alignment.topRight,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) {
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    )
+                  ]
+                ),
+                child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Timeline", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  const Text("Browse all your notifications chronologically. Filter by apps or date.", style: TextStyle(fontSize: 16)),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => controller.next(),
+                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onPrimary),
+                    child: const Text("Next"),
+                  ),
+                ],
+              ),);
+            },
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: "search",
+        keyTarget: _keySearch,
+        alignSkip: Alignment.topRight,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) {
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    )
+                  ]
+                ),
+                child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Search", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  const Text("Quickly find specific notifications across all your connected apps.", style: TextStyle(fontSize: 16)),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => controller.next(),
+                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onPrimary),
+                    child: const Text("Next"),
+                  ),
+                ],
+              ),);
+            },
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: "statistics",
+        keyTarget: _keyStatistics,
+        alignSkip: Alignment.topRight,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) {
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    )
+                  ]
+                ),
+                child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Statistics", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  const Text("Gain insights into which apps are sending the most notifications.", style: TextStyle(fontSize: 16)),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => controller.next(),
+                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onPrimary),
+                    child: const Text("Next"),
+                  ),
+                ],
+              ),);
+            },
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: "settings",
+        keyTarget: _keySettings,
+        alignSkip: Alignment.topRight,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) {
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    )
+                  ]
+                ),
+                child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Settings", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  const Text("Customize your experience, manage read-out-loud apps, and configure lock screen playback behavior.", style: TextStyle(fontSize: 16)),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => controller.next(),
+                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onPrimary),
+                    child: const Text("Finish"),
+                  ),
+                ],
+              ),);
+            },
+          ),
+        ],
+      ),
+    ];
+  }
 
   static int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.toString();
@@ -201,8 +479,8 @@ class MainShell extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      body: child,
-      extendBody: false, // Don't extend body to avoid floating nav overlap
+      body: widget.child,
+      extendBody: false,
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -224,30 +502,35 @@ class MainShell extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _NavItem(
+                      key: _keyDashboard,
                       icon: HugeIcons.strokeRoundedDashboardCircle,
                       label: 'Home',
                       isSelected: currentIndex == 0,
                       onTap: () => context.go(AppRoutes.dashboard),
                     ),
                     _NavItem(
+                      key: _keyTimeline,
                       icon: HugeIcons.strokeRoundedClock01,
                       label: 'Timeline',
                       isSelected: currentIndex == 1,
                       onTap: () => context.go(AppRoutes.timeline),
                     ),
                     _NavItem(
+                      key: _keySearch,
                       icon: HugeIcons.strokeRoundedSearch01,
                       label: 'Search',
                       isSelected: currentIndex == 2,
                       onTap: () => context.go(AppRoutes.search),
                     ),
                     _NavItem(
+                      key: _keyStatistics,
                       icon: HugeIcons.strokeRoundedChart,
                       label: 'Stats',
                       isSelected: currentIndex == 3,
                       onTap: () => context.go(AppRoutes.statistics),
                     ),
                     _NavItem(
+                      key: _keySettings,
                       icon: HugeIcons.strokeRoundedSettings01,
                       label: 'Settings',
                       isSelected: currentIndex == 4,
@@ -271,6 +554,7 @@ class _NavItem extends StatelessWidget {
   final VoidCallback onTap;
 
   const _NavItem({
+    super.key,
     required this.icon,
     required this.label,
     required this.isSelected,

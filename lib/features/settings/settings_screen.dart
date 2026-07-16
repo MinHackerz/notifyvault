@@ -12,11 +12,266 @@ import '../../providers/app_management_providers.dart';
 import '../../core/widgets/section_header.dart';
 import '../../core/helpers/ad_helper.dart';
 
-class SettingsScreen extends ConsumerWidget {
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
+
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  late TutorialCoachMark tutorialCoachMark;
+  
+  // Keys for tutorial targets
+  final GlobalKey _keyAppearance = GlobalKey();
+  final GlobalKey _keyRetention = GlobalKey();
+  final GlobalKey _keyReadOutLoud = GlobalKey();
+  final GlobalKey _keyAppManagement = GlobalKey();
+  final GlobalKey _keyData = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndShowTour();
+    });
+  }
+
+  void _checkAndShowTour() {
+    final hasSeenTour = ref.read(settingsTourCompleteProvider);
+    if (!hasSeenTour) {
+      _initTutorial();
+      tutorialCoachMark.show(context: context);
+    }
+  }
+
+  void _initTutorial() {
+    tutorialCoachMark = TutorialCoachMark(
+      targets: _createTargets(),
+      colorShadow: Colors.black,
+      textSkip: "SKIP",
+      textStyleSkip: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 16),
+      paddingFocus: 10,
+      opacityShadow: 0.85,
+      onFinish: () {
+        ref.read(settingsTourCompleteProvider.notifier).complete();
+      },
+      onSkip: () {
+        ref.read(settingsTourCompleteProvider.notifier).complete();
+        return true;
+      },
+    );
+  }
+
+  List<TargetFocus> _createTargets() {
+    return [
+      TargetFocus(
+        identify: "appearance",
+        keyTarget: _keyAppearance,
+        alignSkip: Alignment.topRight,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) {
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    )
+                  ]
+                ),
+                child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Appearance", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  const Text("Switch between light and dark mode for comfortable viewing.", style: TextStyle(fontSize: 16)),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => controller.next(),
+                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onPrimary),
+                    child: const Text("Next"),
+                  ),
+                ],
+              ),);
+            },
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: "retention",
+        keyTarget: _keyRetention,
+        alignSkip: Alignment.topRight,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) {
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    )
+                  ]
+                ),
+                child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Retention Period", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  const Text("Choose how long you want to keep your notification history.", style: TextStyle(fontSize: 16)),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => controller.next(),
+                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onPrimary),
+                    child: const Text("Next"),
+                  ),
+                ],
+              ),);
+            },
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: "read_out_loud",
+        keyTarget: _keyReadOutLoud,
+        alignSkip: Alignment.topRight,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) {
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    )
+                  ]
+                ),
+                child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Read Out Loud", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  const Text("Configure apps to read their notifications out loud, and customize lock screen behavior.", style: TextStyle(fontSize: 16)),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => controller.next(),
+                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onPrimary),
+                    child: const Text("Next"),
+                  ),
+                ],
+              ),);
+            },
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: "app_management",
+        keyTarget: _keyAppManagement,
+        alignSkip: Alignment.topRight,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) {
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    )
+                  ]
+                ),
+                child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("App Management", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  const Text("Set priority apps, block spam, and manage notification categories.", style: TextStyle(fontSize: 16)),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => controller.next(),
+                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onPrimary),
+                    child: const Text("Next"),
+                  ),
+                ],
+              ),);
+            },
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: "clear_data",
+        keyTarget: _keyData,
+        alignSkip: Alignment.topRight,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) {
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    )
+                  ]
+                ),
+                child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Clear Data", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  const Text("Wipe all your saved notifications instantly.", style: TextStyle(fontSize: 16)),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => controller.next(),
+                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onPrimary),
+                    child: const Text("Finish"),
+                  ),
+                ],
+              ),);
+            },
+          ),
+        ],
+      ),
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final themeMode = ref.watch(themeModeProvider);
     final permissionState = ref.watch(notificationPermissionProvider);
@@ -42,6 +297,7 @@ class SettingsScreen extends ConsumerWidget {
           _SettingsCard(
             children: [
               _SettingsTile(
+                key: _keyAppearance,
                 icon: HugeIcons.strokeRoundedPaintBoard,
                 title: 'Theme',
                 subtitle: _themeModeLabel(themeMode),
@@ -94,6 +350,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
               _buildDivider(context),
               _SettingsTile(
+                key: _keyRetention,
                 icon: HugeIcons.strokeRoundedClock01,
                 title: 'Retention Period',
                 subtitle: retentionDays == -1
@@ -107,6 +364,19 @@ class SettingsScreen extends ConsumerWidget {
               ),
               _buildDivider(context),
               _SettingsTile(
+                key: _keyReadOutLoud,
+                icon: HugeIcons.strokeRoundedMegaphone01,
+                title: 'Read Out Loud',
+                subtitle: 'Select apps to announce notifications',
+                iconColor: AppColors.categoryWork,
+                onTap: () => _showAdAndProceed(
+                  context,
+                  () => context.push(AppRoutes.readOutLoudApps),
+                ),
+              ),
+              _buildDivider(context),
+              _SettingsTile(
+                key: _keyAppManagement,
                 icon: HugeIcons.strokeRoundedDashboardSquare01,
                 title: 'App Management',
                 subtitle: 'Priority, block & spam apps',
@@ -130,25 +400,7 @@ class SettingsScreen extends ConsumerWidget {
           _SettingsCard(
             children: [
               _SettingsTile(
-                icon: HugeIcons.strokeRoundedCloudUpload,
-                title: 'Cloud Backup',
-                subtitle: 'Coming in Phase 2',
-                iconColor: AppColors.categorySocial,
-                enabled: false,
-                onTap: () {},
-              ),
-              _buildDivider(context),
-              _SettingsTile(
-                icon: HugeIcons.strokeRoundedScan,
-                title: 'OCR Text Extraction',
-                subtitle: 'Coming in Phase 3',
-                iconColor: AppColors.categoryPayments,
-                enabled: false,
-                onTap: () {},
-              ),
-
-              _buildDivider(context),
-              _SettingsTile(
+                key: _keyData,
                 icon: HugeIcons.strokeRoundedDelete02,
                 title: 'Clear All Data',
                 subtitle: 'Delete all saved notifications',
@@ -538,12 +790,7 @@ class SettingsScreen extends ConsumerWidget {
                         '3. Complete Data Ownership',
                         'You can view, search, and delete your notification logs at any time. The "Clear All Data" setting deletes all records and cached app icons from your device permanently.',
                       ),
-                      const SizedBox(height: 12),
-                      _buildPolicySection(
-                        context,
-                        '4. Optional Cloud Integration',
-                        'Optional features like cloud synchronization (coming soon) are fully opt-in and utilize end-to-end encryption, ensuring only you hold the decryption keys to your backed-up notifications.',
-                      ),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
@@ -671,6 +918,7 @@ class _SettingsTile extends StatelessWidget {
   final bool enabled;
 
   const _SettingsTile({
+    super.key,
     required this.icon,
     required this.title,
     required this.subtitle,

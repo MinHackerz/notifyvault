@@ -35,6 +35,9 @@ class AppConfig {
   static const String keyNotificationPermission = 'notification_permission';
   static const String keyRetentionPeriod = 'retention_period';
   static const String keyAppManagementUnlocked = 'app_mgmt_unlocked_session';
+  static const String keyAppTourComplete = 'app_tour_complete';
+  static const String keySettingsTourComplete = 'settings_tour_complete';
+  static const String keyTtsPlaybackMode = 'tts_playback_mode';
 
   // ─── Animation Durations ───
   static const Duration animFast = Duration(milliseconds: 200);

@@ -8,6 +8,8 @@ class AppPreferences extends Table {
   /// Status: 'normal', 'priority', 'blocked', 'spam'
   TextColumn get status =>
       text().withDefault(const Constant('normal'))();
+      
+  BoolColumn get readOutLoud => boolean().withDefault(const Constant(false))();
 
   DateTimeColumn get updatedAt => dateTime().nullable()();
 

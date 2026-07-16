@@ -6,6 +6,7 @@ import '../database/app_database.dart';
 import '../models/notification_model.dart';
 import '../core/services/category_service.dart';
 import '../core/services/notification_channel_service.dart';
+import '../core/services/tts_service.dart';
 
 /// Repository that bridges the notification data layer — platform channel,
 /// local database, and category service.
@@ -71,12 +72,35 @@ class NotificationRepository {
     }
 
     // Skip blocked apps — don't save their notifications
+    bool readOutLoud = false;
     try {
       final isBlocked = await _db.appPreferencesDao.isBlocked(model.packageName);
       if (isBlocked) return;
+      
+      final pref = await _db.appPreferencesDao.getPreference(model.packageName);
+      if (pref != null) {
+        readOutLoud = pref.readOutLoud;
+      }
     } catch (e) {
-      debugPrint('Error checking blocked status: $e');
+      debugPrint('Error checking preferences: $e');
     }
+
+    // Duplicate Check: Prevent system bounces (identical text within 1.5 seconds)
+    final recent = await _db.notificationDao.getMostRecentNotificationForPackage(model.packageName);
+    if (recent != null) {
+      if (recent.title == model.title && 
+          recent.body == model.body && 
+          recent.bigText == model.bigText) {
+        final diff = model.timestamp.difference(recent.timestamp).abs();
+        if (diff.inMilliseconds < 1500) {
+          debugPrint('Skipping system bounce duplicate from ${model.packageName}');
+          return;
+        }
+      }
+    }
+
+    // Read Out Loud (TTS) is now handled completely in native Android Service
+    // No need to speak it here.
 
     // Auto-categorize
     final category = _categoryService.categorize(
@@ -118,7 +142,6 @@ class NotificationRepository {
       ),
       deviceId: Value(notification.deviceId),
       isFavorite: Value(notification.isFavorite),
-      isSynced: Value(notification.isSynced),
     );
 
     await _db.notificationDao.insertNotification(companion);
@@ -298,7 +321,6 @@ class NotificationRepository {
       extras: extras,
       deviceId: row.deviceId,
       isFavorite: row.isFavorite,
-      isSynced: row.isSynced,
     );
   }
 }

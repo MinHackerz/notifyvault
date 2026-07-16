@@ -141,7 +141,7 @@ class _PermissionScreenState extends ConsumerState<PermissionScreen> with Widget
                   _buildPrivacyItem(
                     context,
                     HugeIcons.strokeRoundedCloudOff,
-                    'No data sent to servers by default',
+                    'No data sent to servers',
                   )
                       .animate()
                       .fadeIn(delay: 600.ms, duration: 300.ms)

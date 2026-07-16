@@ -37,7 +37,6 @@ class Notifications extends Table {
 
   // User actions
   BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
-  BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};

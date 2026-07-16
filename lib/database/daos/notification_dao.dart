@@ -46,6 +46,15 @@ class NotificationDao extends DatabaseAccessor<AppDatabase>
         .watchSingleOrNull();
   }
 
+  /// Get the most recent notification for a specific package.
+  Future<Notification?> getMostRecentNotificationForPackage(String packageName) {
+    return (select(notifications)
+          ..where((t) => t.packageName.equals(packageName))
+          ..orderBy([(t) => OrderingTerm.desc(t.timestamp)])
+          ..limit(1))
+        .getSingleOrNull();
+  }
+
   /// Search notifications using LIKE queries on title, body, bigText, appName.
   Future<List<Notification>> searchNotifications(
     String query, {

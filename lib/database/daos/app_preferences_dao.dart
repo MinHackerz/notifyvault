@@ -30,6 +30,22 @@ class AppPreferencesDao extends DatabaseAccessor<AppDatabase>
     );
   }
 
+  /// Toggle readOutLoud preference for an app.
+  Future<void> setReadOutLoud(String packageName, String appName, bool readOutLoud) async {
+    final existing = await getPreference(packageName);
+    final status = existing?.status ?? 'normal';
+    
+    await into(appPreferences).insertOnConflictUpdate(
+      AppPreferencesCompanion(
+        packageName: Value(packageName),
+        appName: Value(appName),
+        status: Value(status),
+        readOutLoud: Value(readOutLoud),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
   /// Get all app preferences.
   Future<List<AppPreference>> getAllPreferences() {
     return (select(appPreferences)

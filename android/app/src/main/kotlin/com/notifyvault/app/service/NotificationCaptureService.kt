@@ -8,19 +8,29 @@ import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import android.speech.tts.TextToSpeech
+import java.util.Locale
 import java.io.File
 import java.io.FileOutputStream
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.app.KeyguardManager
 import com.notifyvault.app.database.DatabaseHelper
 
 /**
  * Android NotificationListenerService that captures all device notifications
  * and forwards them to Flutter via an EventChannel broadcast.
  */
-class NotificationCaptureService : NotificationListenerService() {
+class NotificationCaptureService : NotificationListenerService(), TextToSpeech.OnInitListener {
+
+    private var tts: TextToSpeech? = null
+    private var isTtsInitialized = false
+    private var pendingTtsText: String? = null
+    
+    private var lastSpokenText: String? = null
+    private var lastSpokenTime: Long = 0
 
     companion object {
         private const val TAG = "NotifyVault"
@@ -37,10 +47,34 @@ class NotificationCaptureService : NotificationListenerService() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        tts = TextToSpeech(this, this)
         Log.d(TAG, "NotificationCaptureService created")
     }
 
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            val audioAttributes = android.media.AudioAttributes.Builder()
+                .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
+                .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH)
+                .build()
+            tts?.setAudioAttributes(audioAttributes)
+            tts?.language = Locale.getDefault()
+            isTtsInitialized = true
+            
+            pendingTtsText?.let {
+                DatabaseHelper.logToFile(applicationContext, "Playing queued TTS text")
+                tts?.speak(it, TextToSpeech.QUEUE_ADD, null, "NotificationTTS")
+                pendingTtsText = null
+            }
+        } else {
+            Log.e(TAG, "TTS Initialization failed!")
+            DatabaseHelper.logToFile(applicationContext, "TTS Initialization failed with status: $status")
+        }
+    }
+
     override fun onDestroy() {
+        tts?.stop()
+        tts?.shutdown()
         instance = null
         super.onDestroy()
         Log.d(TAG, "NotificationCaptureService destroyed")
@@ -76,6 +110,57 @@ class NotificationCaptureService : NotificationListenerService() {
 
         try {
             val data = extractNotificationData(sbn)
+            
+            // Native TTS logic
+            val packageName = data["packageName"] as? String ?: ""
+            if (packageName.isNotEmpty()) {
+                val shouldRead = DatabaseHelper.isReadOutLoudEnabled(applicationContext, packageName)
+                DatabaseHelper.logToFile(applicationContext, "TTS Check for $packageName: shouldRead=$shouldRead, isTtsInitialized=$isTtsInitialized")
+                
+                if (shouldRead) {
+                    val appName = data["appName"] as? String ?: ""
+                    val title = data["title"] as? String ?: ""
+                    val body = data["body"] as? String ?: ""
+                    val ttsText = "$appName says: $title. $body"
+                    
+                    // Deduplication: prevent repeating the exact same text within 5 seconds
+                    val now = System.currentTimeMillis()
+                    val isDuplicate = ttsText == lastSpokenText && (now - lastSpokenTime) < 5000
+                    
+                    if (isDuplicate) {
+                        DatabaseHelper.logToFile(applicationContext, "TTS Deduplication: Skipped duplicate text within 5 seconds")
+                    } else {
+                        // Playback Mode Check
+                        val prefs = getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+                        val playbackMode = prefs.getLong("flutter.tts_playback_mode", 0L).toInt() // 0=Anytime, 1=OnlyUnlocked, 2=OnlyLocked
+                        val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
+                        val isLocked = keyguardManager?.isKeyguardLocked ?: false
+                        
+                        var allowedToPlay = false
+                        when (playbackMode) {
+                            0 -> allowedToPlay = true
+                            1 -> allowedToPlay = !isLocked
+                            2 -> allowedToPlay = isLocked
+                        }
+                        
+                        if (!allowedToPlay) {
+                            DatabaseHelper.logToFile(applicationContext, "TTS Skipped by PlaybackMode: mode=$playbackMode, isLocked=$isLocked")
+                        } else {
+                            lastSpokenText = ttsText
+                            lastSpokenTime = now
+                            
+                            if (isTtsInitialized) {
+                                tts?.speak(ttsText, TextToSpeech.QUEUE_ADD, null, "NotificationTTS")
+                                DatabaseHelper.logToFile(applicationContext, "Played native TTS for $packageName")
+                            } else {
+                                pendingTtsText = ttsText
+                                DatabaseHelper.logToFile(applicationContext, "Queued native TTS for $packageName because engine is not initialized yet")
+                            }
+                        }
+                    }
+                }
+            }
+
             val callback = onNotificationPostedCallback
             val inForeground = isAppInForeground()
             

@@ -10,10 +10,56 @@ import '../../providers/notification_providers.dart';
 import '../../providers/permission_providers.dart';
 import '../../providers/app_management_providers.dart';
 import '../../models/category_model.dart';
+import '../../models/notification_model.dart';
 import '../../core/widgets/category_chip.dart';
 import '../../core/widgets/notification_tile.dart';
 import '../../core/widgets/shimmer_loading.dart';
 import '../../core/widgets/section_header.dart';
+
+final dashboardTabProvider = NotifierProvider<DashboardTabNotifier, String>(DashboardTabNotifier.new);
+
+class DashboardTabNotifier extends Notifier<String> {
+  @override
+  String build() => 'priority';
+  
+  // ignore: use_setters_to_change_properties
+  void setTab(String tab) => state = tab;
+}
+
+final recentActivityNotificationsProvider = Provider.autoDispose<AsyncValue<Map<String, List<NotificationModel>>>>((ref) {
+  final notificationsAsync = ref.watch(notificationStreamProvider);
+  final priorityPkgsAsync = ref.watch(priorityPackagesProvider);
+  final spamPkgsAsync = ref.watch(spamPackagesProvider);
+
+  return notificationsAsync.whenData((notifications) {
+    final priorityPkgs = priorityPkgsAsync.whenData((v) => v).value ?? <String>{};
+    final spamPkgs = spamPkgsAsync.whenData((v) => v).value ?? <String>{};
+
+    final now = DateTime.now();
+    
+    final priority = <NotificationModel>[];
+    final normal = <NotificationModel>[];
+    final spam = <NotificationModel>[];
+
+    for (final n in notifications) {
+      if (n.timestamp.year == now.year && n.timestamp.month == now.month && n.timestamp.day == now.day) {
+        if (priorityPkgs.contains(n.packageName)) {
+          priority.add(n);
+        } else if (spamPkgs.contains(n.packageName)) {
+          spam.add(n);
+        } else {
+          normal.add(n);
+        }
+      }
+    }
+
+    return {
+      'priority': priority,
+      'normal': normal,
+      'spam': spam,
+    };
+  });
+});
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -32,6 +78,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     ref.invalidate(totalCountProvider);
     ref.invalidate(priorityPackagesProvider);
     ref.invalidate(spamPackagesProvider);
+    ref.invalidate(prioritySortedNotificationsProvider);
+    ref.invalidate(recentActivityNotificationsProvider);
 
     // Wait a short moment for providers to re-evaluate
     await Future.delayed(const Duration(milliseconds: 500));
@@ -213,8 +261,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ),
             ),
 
+            // Tabs
+            SliverToBoxAdapter(
+              child: _RecentActivityTabs(),
+            ),
+
             // Recent notifications list (priority sorted)
-            _RecentNotifications(),
+            const _RecentNotifications(),
 
             // Bottom padding
             const SliverToBoxAdapter(
@@ -571,16 +624,90 @@ class _CategoryQuickAccess extends StatelessWidget {
   }
 }
 
-class _RecentNotifications extends ConsumerWidget {
+class _RecentActivityTabs extends ConsumerWidget {
+  const _RecentActivityTabs();
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notificationsAsync = ref.watch(prioritySortedNotificationsProvider);
+    final selectedTab = ref.watch(dashboardTabProvider);
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          _buildTab(context, ref, 'priority', 'Priority', selectedTab == 'priority'),
+          const SizedBox(width: 8),
+          _buildTab(context, ref, 'normal', 'Normal', selectedTab == 'normal'),
+          const SizedBox(width: 8),
+          _buildTab(context, ref, 'spam', 'Spam', selectedTab == 'spam'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTab(BuildContext context, WidgetRef ref, String id, String label, bool isSelected) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    return InkWell(
+      onTap: () => ref.read(dashboardTabProvider.notifier).setTab(id),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? theme.colorScheme.primary : (isDark ? const Color(0xFF131A2D) : theme.colorScheme.surface),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? theme.colorScheme.primary : theme.colorScheme.outline.withValues(alpha: 0.5),
+          ),
+        ),
+        child: Text(
+          label,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: isSelected ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RecentNotifications extends ConsumerStatefulWidget {
+  const _RecentNotifications();
+
+  @override
+  ConsumerState<_RecentNotifications> createState() => _RecentNotificationsState();
+}
+
+class _RecentNotificationsState extends ConsumerState<_RecentNotifications> {
+  bool _hasSetInitialTab = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final dataAsync = ref.watch(recentActivityNotificationsProvider);
     final priorityPkgs = ref.watch(priorityPackagesProvider).whenData((v) => v).value ?? <String>{};
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final selectedTab = ref.watch(dashboardTabProvider);
 
-    return notificationsAsync.when(
-      data: (notifications) {
+    return dataAsync.when(
+      data: (data) {
+        final priority = data['priority']!;
+        
+        if (!_hasSetInitialTab) {
+           _hasSetInitialTab = true;
+           if (priority.isEmpty) {
+             Future.microtask(() {
+               if (mounted) {
+                 ref.read(dashboardTabProvider.notifier).setTab('normal');
+               }
+             });
+           }
+        }
+
+        final notifications = data[selectedTab]!;
+
         if (notifications.isEmpty) {
           return SliverToBoxAdapter(
             child: Padding(
@@ -609,7 +736,7 @@ class _RecentNotifications extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No notifications yet',
+                      'No ${selectedTab[0].toUpperCase()}${selectedTab.substring(1)} notifications',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                         fontWeight: FontWeight.w600,
@@ -617,7 +744,7 @@ class _RecentNotifications extends ConsumerWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Captured notifications will show here.',
+                      'Check the other tabs for recent activity.',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                       ),
@@ -629,12 +756,10 @@ class _RecentNotifications extends ConsumerWidget {
           );
         }
 
-        final recent = notifications.take(10).toList();
-
         return SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) {
-              final notification = recent[index];
+              final notification = notifications[index];
               final isPriority = priorityPkgs.contains(notification.packageName);
               return NotificationTile(
                 notification: notification,
@@ -652,7 +777,7 @@ class _RecentNotifications extends ConsumerWidget {
                 },
               );
             },
-            childCount: recent.length,
+            childCount: notifications.length,
           ),
         );
       },

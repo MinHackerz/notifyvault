@@ -54,6 +54,7 @@ final appsWithPreferencesProvider =
   // Get user-set priority preferences
   final prefs = await AppDatabase.instance.appPreferencesDao.getAllPreferences();
   final prefMap = {for (final p in prefs) p.packageName: p.status};
+  final readOutLoudMap = {for (final p in prefs) p.packageName: p.readOutLoud};
 
   return installedApps.map((map) {
     final packageName = map['packageName'] as String;
@@ -66,6 +67,7 @@ final appsWithPreferencesProvider =
       iconPath: iconPath,
       notificationCount: countsMap[packageName] ?? 0,
       status: prefMap[packageName] ?? 'normal',
+      readOutLoud: readOutLoudMap[packageName] ?? false,
     );
   }).toList();
 });
@@ -77,6 +79,7 @@ class AppWithPreference {
   final String? iconPath;
   final int notificationCount;
   final String status; // 'normal', 'priority', 'blocked', 'spam'
+  final bool readOutLoud;
 
   const AppWithPreference({
     required this.packageName,
@@ -84,5 +87,6 @@ class AppWithPreference {
     this.iconPath,
     required this.notificationCount,
     required this.status,
+    this.readOutLoud = false,
   });
 }

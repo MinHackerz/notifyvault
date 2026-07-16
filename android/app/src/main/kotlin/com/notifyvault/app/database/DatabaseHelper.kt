@@ -89,6 +89,25 @@ object DatabaseHelper {
 
         db.beginTransaction()
         try {
+            // Check for system bounce duplicates (identical text within ~1.5 seconds)
+            val recentCursor = db.rawQuery("SELECT title, body, big_text, timestamp FROM notifications WHERE package_name = ? ORDER BY timestamp DESC LIMIT 1", arrayOf(packageName))
+            if (recentCursor.moveToFirst()) {
+                val rTitle = recentCursor.getString(0)
+                val rBody = recentCursor.getString(1)
+                val rBigText = recentCursor.getString(2)
+                val rTimestampSec = recentCursor.getLong(3)
+                
+                if (rTitle == title && rBody == body && rBigText == bigText) {
+                    if (Math.abs(timestampSec - rTimestampSec) <= 1) { // 0 or 1 second difference
+                        logToFile(context, "Skipping system bounce duplicate for $packageName")
+                        recentCursor.close()
+                        db.endTransaction()
+                        return
+                    }
+                }
+            }
+            recentCursor.close()
+
             // 1. Get system app category dynamically
             val appCategory = getAppCategory(context, packageName)
 
@@ -189,6 +208,23 @@ object DatabaseHelper {
                 // ignore
             }
         }
+    }
+
+    fun isReadOutLoudEnabled(context: Context, packageName: String): Boolean {
+        val db = getDatabase(context) ?: return false
+        var enabled = false
+        try {
+            val cursor = db.rawQuery("SELECT read_out_loud FROM app_preferences WHERE package_name = ?", arrayOf(packageName))
+            if (cursor.moveToFirst()) {
+                enabled = cursor.getInt(0) == 1
+            }
+            cursor.close()
+        } catch (e: Exception) {
+            logToFile(context, "ERROR checking read_out_loud for $packageName: ${e.message}")
+        } finally {
+            try { db.close() } catch (e: Exception) {}
+        }
+        return enabled
     }
 
     private fun getAppCategory(context: Context, packageName: String): String {

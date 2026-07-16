@@ -4,7 +4,6 @@ import '../app/config/app_config.dart';
 import 'tables/notifications_table.dart';
 import 'tables/categories_table.dart';
 import 'tables/apps_table.dart';
-import 'tables/sync_queue_table.dart';
 import 'tables/app_preferences_table.dart';
 import 'daos/notification_dao.dart';
 import 'daos/app_dao.dart';
@@ -14,7 +13,7 @@ part 'app_database.g.dart';
 
 /// Main Drift database for NotifyVault.
 @DriftDatabase(
-  tables: [Notifications, Categories, Apps, SyncQueue, AppPreferences],
+  tables: [Notifications, Categories, Apps, AppPreferences],
   daos: [NotificationDao, AppDao, AppPreferencesDao],
 )
 class AppDatabase extends _$AppDatabase {
@@ -29,7 +28,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -40,6 +39,9 @@ class AppDatabase extends _$AppDatabase {
       onUpgrade: (Migrator m, int from, int to) async {
         if (from < 2) {
           await m.createTable(appPreferences);
+        }
+        if (from < 3) {
+          await m.addColumn(appPreferences, appPreferences.readOutLoud);
         }
       },
     );

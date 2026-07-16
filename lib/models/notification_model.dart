@@ -18,7 +18,6 @@ class NotificationModel {
   final Map<String, dynamic>? extras;
   final String? deviceId;
   final bool isFavorite;
-  final bool isSynced;
 
   const NotificationModel({
     required this.id,
@@ -39,7 +38,6 @@ class NotificationModel {
     this.extras,
     this.deviceId,
     this.isFavorite = false,
-    this.isSynced = false,
   });
 
   /// Create from platform channel map (data arriving from Android native).
@@ -65,7 +63,6 @@ class NotificationModel {
       extras: map['extras'] as Map<String, dynamic>?,
       deviceId: map['deviceId'] as String?,
       isFavorite: false,
-      isSynced: false,
     );
   }
 
@@ -90,7 +87,6 @@ class NotificationModel {
       'extras': extras,
       'deviceId': deviceId,
       'isFavorite': isFavorite,
-      'isSynced': isSynced,
     };
   }
 
@@ -115,7 +111,6 @@ class NotificationModel {
       extras: json['extras'] as Map<String, dynamic>?,
       deviceId: json['deviceId'] as String?,
       isFavorite: json['isFavorite'] as bool? ?? false,
-      isSynced: json['isSynced'] as bool? ?? false,
     );
   }
 
@@ -139,7 +134,6 @@ class NotificationModel {
     Map<String, dynamic>? extras,
     String? deviceId,
     bool? isFavorite,
-    bool? isSynced,
   }) {
     return NotificationModel(
       id: id ?? this.id,
@@ -160,7 +154,6 @@ class NotificationModel {
       extras: extras ?? this.extras,
       deviceId: deviceId ?? this.deviceId,
       isFavorite: isFavorite ?? this.isFavorite,
-      isSynced: isSynced ?? this.isSynced,
     );
   }
 

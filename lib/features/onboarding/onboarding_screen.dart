@@ -35,7 +35,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       visual: _SecurityVisual(),
       title: 'Secure &\nPrivate',
       subtitle:
-          'Your notifications stay on your device by default. Cloud backup is optional and fully encrypted. Your data, your rules.',
+          'Your notifications stay on your device by default. Your data, your rules.',
     ),
   ];
 
@@ -548,11 +548,6 @@ class _SecurityVisual extends StatelessWidget {
             top: 10,
             left: 40,
             child: _buildOrbitingBadge(context, HugeIcons.strokeRoundedFileLock, 'Local DB'),
-          ),
-          Positioned(
-            bottom: 10,
-            right: 40,
-            child: _buildOrbitingBadge(context, HugeIcons.strokeRoundedCloudUpload, 'Backup'),
           ),
         ],
       ),

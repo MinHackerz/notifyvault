@@ -17,6 +17,8 @@ class TimelineScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final groupedAsync = ref.watch(filteredTimelineNotificationsProvider);
+    final activeFilter = ref.watch(timelineFilterProvider);
+    final hasActiveFilter = activeFilter.categoryId != null || activeFilter.onlyUnread != null;
 
     return Scaffold(
       appBar: AppBar(
@@ -29,9 +31,10 @@ class TimelineScreen extends ConsumerWidget {
         ),
         actions: [
           IconButton(
-            icon: const HugeIcon(
+            icon: HugeIcon(
               icon: HugeIcons.strokeRoundedFilter,
               size: 20,
+              color: hasActiveFilter ? Theme.of(context).colorScheme.primary : null,
             ),
             onPressed: () => _showFilterSheet(context, ref),
           ),

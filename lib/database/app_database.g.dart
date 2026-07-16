@@ -211,21 +211,6 @@ class $NotificationsTable extends Notifications
     ),
     defaultValue: const Constant(false),
   );
-  static const VerificationMeta _isSyncedMeta = const VerificationMeta(
-    'isSynced',
-  );
-  @override
-  late final GeneratedColumn<bool> isSynced = GeneratedColumn<bool>(
-    'is_synced',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_synced" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -246,7 +231,6 @@ class $NotificationsTable extends Notifications
     extras,
     deviceId,
     isFavorite,
-    isSynced,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -382,12 +366,6 @@ class $NotificationsTable extends Notifications
         isFavorite.isAcceptableOrUnknown(data['is_favorite']!, _isFavoriteMeta),
       );
     }
-    if (data.containsKey('is_synced')) {
-      context.handle(
-        _isSyncedMeta,
-        isSynced.isAcceptableOrUnknown(data['is_synced']!, _isSyncedMeta),
-      );
-    }
     return context;
   }
 
@@ -469,10 +447,6 @@ class $NotificationsTable extends Notifications
         DriftSqlType.bool,
         data['${effectivePrefix}is_favorite'],
       )!,
-      isSynced: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_synced'],
-      )!,
     );
   }
 
@@ -501,7 +475,6 @@ class Notification extends DataClass implements Insertable<Notification> {
   final String? extras;
   final String? deviceId;
   final bool isFavorite;
-  final bool isSynced;
   const Notification({
     required this.id,
     required this.packageName,
@@ -521,7 +494,6 @@ class Notification extends DataClass implements Insertable<Notification> {
     this.extras,
     this.deviceId,
     required this.isFavorite,
-    required this.isSynced,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -562,7 +534,6 @@ class Notification extends DataClass implements Insertable<Notification> {
       map['device_id'] = Variable<String>(deviceId);
     }
     map['is_favorite'] = Variable<bool>(isFavorite);
-    map['is_synced'] = Variable<bool>(isSynced);
     return map;
   }
 
@@ -602,7 +573,6 @@ class Notification extends DataClass implements Insertable<Notification> {
           ? const Value.absent()
           : Value(deviceId),
       isFavorite: Value(isFavorite),
-      isSynced: Value(isSynced),
     );
   }
 
@@ -630,7 +600,6 @@ class Notification extends DataClass implements Insertable<Notification> {
       extras: serializer.fromJson<String?>(json['extras']),
       deviceId: serializer.fromJson<String?>(json['deviceId']),
       isFavorite: serializer.fromJson<bool>(json['isFavorite']),
-      isSynced: serializer.fromJson<bool>(json['isSynced']),
     );
   }
   @override
@@ -655,7 +624,6 @@ class Notification extends DataClass implements Insertable<Notification> {
       'extras': serializer.toJson<String?>(extras),
       'deviceId': serializer.toJson<String?>(deviceId),
       'isFavorite': serializer.toJson<bool>(isFavorite),
-      'isSynced': serializer.toJson<bool>(isSynced),
     };
   }
 
@@ -678,7 +646,6 @@ class Notification extends DataClass implements Insertable<Notification> {
     Value<String?> extras = const Value.absent(),
     Value<String?> deviceId = const Value.absent(),
     bool? isFavorite,
-    bool? isSynced,
   }) => Notification(
     id: id ?? this.id,
     packageName: packageName ?? this.packageName,
@@ -700,7 +667,6 @@ class Notification extends DataClass implements Insertable<Notification> {
     extras: extras.present ? extras.value : this.extras,
     deviceId: deviceId.present ? deviceId.value : this.deviceId,
     isFavorite: isFavorite ?? this.isFavorite,
-    isSynced: isSynced ?? this.isSynced,
   );
   Notification copyWithCompanion(NotificationsCompanion data) {
     return Notification(
@@ -734,7 +700,6 @@ class Notification extends DataClass implements Insertable<Notification> {
       isFavorite: data.isFavorite.present
           ? data.isFavorite.value
           : this.isFavorite,
-      isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
     );
   }
 
@@ -758,8 +723,7 @@ class Notification extends DataClass implements Insertable<Notification> {
           ..write('iconPath: $iconPath, ')
           ..write('extras: $extras, ')
           ..write('deviceId: $deviceId, ')
-          ..write('isFavorite: $isFavorite, ')
-          ..write('isSynced: $isSynced')
+          ..write('isFavorite: $isFavorite')
           ..write(')'))
         .toString();
   }
@@ -784,7 +748,6 @@ class Notification extends DataClass implements Insertable<Notification> {
     extras,
     deviceId,
     isFavorite,
-    isSynced,
   );
   @override
   bool operator ==(Object other) =>
@@ -807,8 +770,7 @@ class Notification extends DataClass implements Insertable<Notification> {
           other.iconPath == this.iconPath &&
           other.extras == this.extras &&
           other.deviceId == this.deviceId &&
-          other.isFavorite == this.isFavorite &&
-          other.isSynced == this.isSynced);
+          other.isFavorite == this.isFavorite);
 }
 
 class NotificationsCompanion extends UpdateCompanion<Notification> {
@@ -830,7 +792,6 @@ class NotificationsCompanion extends UpdateCompanion<Notification> {
   final Value<String?> extras;
   final Value<String?> deviceId;
   final Value<bool> isFavorite;
-  final Value<bool> isSynced;
   final Value<int> rowid;
   const NotificationsCompanion({
     this.id = const Value.absent(),
@@ -851,7 +812,6 @@ class NotificationsCompanion extends UpdateCompanion<Notification> {
     this.extras = const Value.absent(),
     this.deviceId = const Value.absent(),
     this.isFavorite = const Value.absent(),
-    this.isSynced = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   NotificationsCompanion.insert({
@@ -873,7 +833,6 @@ class NotificationsCompanion extends UpdateCompanion<Notification> {
     this.extras = const Value.absent(),
     this.deviceId = const Value.absent(),
     this.isFavorite = const Value.absent(),
-    this.isSynced = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        packageName = Value(packageName),
@@ -898,7 +857,6 @@ class NotificationsCompanion extends UpdateCompanion<Notification> {
     Expression<String>? extras,
     Expression<String>? deviceId,
     Expression<bool>? isFavorite,
-    Expression<bool>? isSynced,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -920,7 +878,6 @@ class NotificationsCompanion extends UpdateCompanion<Notification> {
       if (extras != null) 'extras': extras,
       if (deviceId != null) 'device_id': deviceId,
       if (isFavorite != null) 'is_favorite': isFavorite,
-      if (isSynced != null) 'is_synced': isSynced,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -944,7 +901,6 @@ class NotificationsCompanion extends UpdateCompanion<Notification> {
     Value<String?>? extras,
     Value<String?>? deviceId,
     Value<bool>? isFavorite,
-    Value<bool>? isSynced,
     Value<int>? rowid,
   }) {
     return NotificationsCompanion(
@@ -966,7 +922,6 @@ class NotificationsCompanion extends UpdateCompanion<Notification> {
       extras: extras ?? this.extras,
       deviceId: deviceId ?? this.deviceId,
       isFavorite: isFavorite ?? this.isFavorite,
-      isSynced: isSynced ?? this.isSynced,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1028,9 +983,6 @@ class NotificationsCompanion extends UpdateCompanion<Notification> {
     if (isFavorite.present) {
       map['is_favorite'] = Variable<bool>(isFavorite.value);
     }
-    if (isSynced.present) {
-      map['is_synced'] = Variable<bool>(isSynced.value);
-    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1058,7 +1010,6 @@ class NotificationsCompanion extends UpdateCompanion<Notification> {
           ..write('extras: $extras, ')
           ..write('deviceId: $deviceId, ')
           ..write('isFavorite: $isFavorite, ')
-          ..write('isSynced: $isSynced, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1759,328 +1710,6 @@ class AppsCompanion extends UpdateCompanion<App> {
   }
 }
 
-class $SyncQueueTable extends SyncQueue
-    with TableInfo<$SyncQueueTable, SyncQueueData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $SyncQueueTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _notificationIdMeta = const VerificationMeta(
-    'notificationId',
-  );
-  @override
-  late final GeneratedColumn<String> notificationId = GeneratedColumn<String>(
-    'notification_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _statusMeta = const VerificationMeta('status');
-  @override
-  late final GeneratedColumn<String> status = GeneratedColumn<String>(
-    'status',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('pending'),
-  );
-  static const VerificationMeta _retryCountMeta = const VerificationMeta(
-    'retryCount',
-  );
-  @override
-  late final GeneratedColumn<int> retryCount = GeneratedColumn<int>(
-    'retry_count',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0),
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    notificationId,
-    status,
-    retryCount,
-    createdAt,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'sync_queue';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<SyncQueueData> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('notification_id')) {
-      context.handle(
-        _notificationIdMeta,
-        notificationId.isAcceptableOrUnknown(
-          data['notification_id']!,
-          _notificationIdMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_notificationIdMeta);
-    }
-    if (data.containsKey('status')) {
-      context.handle(
-        _statusMeta,
-        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
-      );
-    }
-    if (data.containsKey('retry_count')) {
-      context.handle(
-        _retryCountMeta,
-        retryCount.isAcceptableOrUnknown(data['retry_count']!, _retryCountMeta),
-      );
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_createdAtMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {notificationId};
-  @override
-  SyncQueueData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return SyncQueueData(
-      notificationId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}notification_id'],
-      )!,
-      status: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}status'],
-      )!,
-      retryCount: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}retry_count'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-    );
-  }
-
-  @override
-  $SyncQueueTable createAlias(String alias) {
-    return $SyncQueueTable(attachedDatabase, alias);
-  }
-}
-
-class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
-  final String notificationId;
-  final String status;
-  final int retryCount;
-  final DateTime createdAt;
-  const SyncQueueData({
-    required this.notificationId,
-    required this.status,
-    required this.retryCount,
-    required this.createdAt,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['notification_id'] = Variable<String>(notificationId);
-    map['status'] = Variable<String>(status);
-    map['retry_count'] = Variable<int>(retryCount);
-    map['created_at'] = Variable<DateTime>(createdAt);
-    return map;
-  }
-
-  SyncQueueCompanion toCompanion(bool nullToAbsent) {
-    return SyncQueueCompanion(
-      notificationId: Value(notificationId),
-      status: Value(status),
-      retryCount: Value(retryCount),
-      createdAt: Value(createdAt),
-    );
-  }
-
-  factory SyncQueueData.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return SyncQueueData(
-      notificationId: serializer.fromJson<String>(json['notificationId']),
-      status: serializer.fromJson<String>(json['status']),
-      retryCount: serializer.fromJson<int>(json['retryCount']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'notificationId': serializer.toJson<String>(notificationId),
-      'status': serializer.toJson<String>(status),
-      'retryCount': serializer.toJson<int>(retryCount),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-    };
-  }
-
-  SyncQueueData copyWith({
-    String? notificationId,
-    String? status,
-    int? retryCount,
-    DateTime? createdAt,
-  }) => SyncQueueData(
-    notificationId: notificationId ?? this.notificationId,
-    status: status ?? this.status,
-    retryCount: retryCount ?? this.retryCount,
-    createdAt: createdAt ?? this.createdAt,
-  );
-  SyncQueueData copyWithCompanion(SyncQueueCompanion data) {
-    return SyncQueueData(
-      notificationId: data.notificationId.present
-          ? data.notificationId.value
-          : this.notificationId,
-      status: data.status.present ? data.status.value : this.status,
-      retryCount: data.retryCount.present
-          ? data.retryCount.value
-          : this.retryCount,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('SyncQueueData(')
-          ..write('notificationId: $notificationId, ')
-          ..write('status: $status, ')
-          ..write('retryCount: $retryCount, ')
-          ..write('createdAt: $createdAt')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(notificationId, status, retryCount, createdAt);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is SyncQueueData &&
-          other.notificationId == this.notificationId &&
-          other.status == this.status &&
-          other.retryCount == this.retryCount &&
-          other.createdAt == this.createdAt);
-}
-
-class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
-  final Value<String> notificationId;
-  final Value<String> status;
-  final Value<int> retryCount;
-  final Value<DateTime> createdAt;
-  final Value<int> rowid;
-  const SyncQueueCompanion({
-    this.notificationId = const Value.absent(),
-    this.status = const Value.absent(),
-    this.retryCount = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  SyncQueueCompanion.insert({
-    required String notificationId,
-    this.status = const Value.absent(),
-    this.retryCount = const Value.absent(),
-    required DateTime createdAt,
-    this.rowid = const Value.absent(),
-  }) : notificationId = Value(notificationId),
-       createdAt = Value(createdAt);
-  static Insertable<SyncQueueData> custom({
-    Expression<String>? notificationId,
-    Expression<String>? status,
-    Expression<int>? retryCount,
-    Expression<DateTime>? createdAt,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (notificationId != null) 'notification_id': notificationId,
-      if (status != null) 'status': status,
-      if (retryCount != null) 'retry_count': retryCount,
-      if (createdAt != null) 'created_at': createdAt,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  SyncQueueCompanion copyWith({
-    Value<String>? notificationId,
-    Value<String>? status,
-    Value<int>? retryCount,
-    Value<DateTime>? createdAt,
-    Value<int>? rowid,
-  }) {
-    return SyncQueueCompanion(
-      notificationId: notificationId ?? this.notificationId,
-      status: status ?? this.status,
-      retryCount: retryCount ?? this.retryCount,
-      createdAt: createdAt ?? this.createdAt,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (notificationId.present) {
-      map['notification_id'] = Variable<String>(notificationId.value);
-    }
-    if (status.present) {
-      map['status'] = Variable<String>(status.value);
-    }
-    if (retryCount.present) {
-      map['retry_count'] = Variable<int>(retryCount.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('SyncQueueCompanion(')
-          ..write('notificationId: $notificationId, ')
-          ..write('status: $status, ')
-          ..write('retryCount: $retryCount, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class $AppPreferencesTable extends AppPreferences
     with TableInfo<$AppPreferencesTable, AppPreference> {
   @override
@@ -2119,6 +1748,21 @@ class $AppPreferencesTable extends AppPreferences
     requiredDuringInsert: false,
     defaultValue: const Constant('normal'),
   );
+  static const VerificationMeta _readOutLoudMeta = const VerificationMeta(
+    'readOutLoud',
+  );
+  @override
+  late final GeneratedColumn<bool> readOutLoud = GeneratedColumn<bool>(
+    'read_out_loud',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("read_out_loud" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -2135,6 +1779,7 @@ class $AppPreferencesTable extends AppPreferences
     packageName,
     appName,
     status,
+    readOutLoud,
     updatedAt,
   ];
   @override
@@ -2174,6 +1819,15 @@ class $AppPreferencesTable extends AppPreferences
         status.isAcceptableOrUnknown(data['status']!, _statusMeta),
       );
     }
+    if (data.containsKey('read_out_loud')) {
+      context.handle(
+        _readOutLoudMeta,
+        readOutLoud.isAcceptableOrUnknown(
+          data['read_out_loud']!,
+          _readOutLoudMeta,
+        ),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -2201,6 +1855,10 @@ class $AppPreferencesTable extends AppPreferences
         DriftSqlType.string,
         data['${effectivePrefix}status'],
       )!,
+      readOutLoud: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}read_out_loud'],
+      )!,
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -2220,11 +1878,13 @@ class AppPreference extends DataClass implements Insertable<AppPreference> {
 
   /// Status: 'normal', 'priority', 'blocked', 'spam'
   final String status;
+  final bool readOutLoud;
   final DateTime? updatedAt;
   const AppPreference({
     required this.packageName,
     required this.appName,
     required this.status,
+    required this.readOutLoud,
     this.updatedAt,
   });
   @override
@@ -2233,6 +1893,7 @@ class AppPreference extends DataClass implements Insertable<AppPreference> {
     map['package_name'] = Variable<String>(packageName);
     map['app_name'] = Variable<String>(appName);
     map['status'] = Variable<String>(status);
+    map['read_out_loud'] = Variable<bool>(readOutLoud);
     if (!nullToAbsent || updatedAt != null) {
       map['updated_at'] = Variable<DateTime>(updatedAt);
     }
@@ -2244,6 +1905,7 @@ class AppPreference extends DataClass implements Insertable<AppPreference> {
       packageName: Value(packageName),
       appName: Value(appName),
       status: Value(status),
+      readOutLoud: Value(readOutLoud),
       updatedAt: updatedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(updatedAt),
@@ -2259,6 +1921,7 @@ class AppPreference extends DataClass implements Insertable<AppPreference> {
       packageName: serializer.fromJson<String>(json['packageName']),
       appName: serializer.fromJson<String>(json['appName']),
       status: serializer.fromJson<String>(json['status']),
+      readOutLoud: serializer.fromJson<bool>(json['readOutLoud']),
       updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
     );
   }
@@ -2269,6 +1932,7 @@ class AppPreference extends DataClass implements Insertable<AppPreference> {
       'packageName': serializer.toJson<String>(packageName),
       'appName': serializer.toJson<String>(appName),
       'status': serializer.toJson<String>(status),
+      'readOutLoud': serializer.toJson<bool>(readOutLoud),
       'updatedAt': serializer.toJson<DateTime?>(updatedAt),
     };
   }
@@ -2277,11 +1941,13 @@ class AppPreference extends DataClass implements Insertable<AppPreference> {
     String? packageName,
     String? appName,
     String? status,
+    bool? readOutLoud,
     Value<DateTime?> updatedAt = const Value.absent(),
   }) => AppPreference(
     packageName: packageName ?? this.packageName,
     appName: appName ?? this.appName,
     status: status ?? this.status,
+    readOutLoud: readOutLoud ?? this.readOutLoud,
     updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
   );
   AppPreference copyWithCompanion(AppPreferencesCompanion data) {
@@ -2291,6 +1957,9 @@ class AppPreference extends DataClass implements Insertable<AppPreference> {
           : this.packageName,
       appName: data.appName.present ? data.appName.value : this.appName,
       status: data.status.present ? data.status.value : this.status,
+      readOutLoud: data.readOutLoud.present
+          ? data.readOutLoud.value
+          : this.readOutLoud,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -2301,13 +1970,15 @@ class AppPreference extends DataClass implements Insertable<AppPreference> {
           ..write('packageName: $packageName, ')
           ..write('appName: $appName, ')
           ..write('status: $status, ')
+          ..write('readOutLoud: $readOutLoud, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(packageName, appName, status, updatedAt);
+  int get hashCode =>
+      Object.hash(packageName, appName, status, readOutLoud, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2315,6 +1986,7 @@ class AppPreference extends DataClass implements Insertable<AppPreference> {
           other.packageName == this.packageName &&
           other.appName == this.appName &&
           other.status == this.status &&
+          other.readOutLoud == this.readOutLoud &&
           other.updatedAt == this.updatedAt);
 }
 
@@ -2322,12 +1994,14 @@ class AppPreferencesCompanion extends UpdateCompanion<AppPreference> {
   final Value<String> packageName;
   final Value<String> appName;
   final Value<String> status;
+  final Value<bool> readOutLoud;
   final Value<DateTime?> updatedAt;
   final Value<int> rowid;
   const AppPreferencesCompanion({
     this.packageName = const Value.absent(),
     this.appName = const Value.absent(),
     this.status = const Value.absent(),
+    this.readOutLoud = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -2335,6 +2009,7 @@ class AppPreferencesCompanion extends UpdateCompanion<AppPreference> {
     required String packageName,
     required String appName,
     this.status = const Value.absent(),
+    this.readOutLoud = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : packageName = Value(packageName),
@@ -2343,6 +2018,7 @@ class AppPreferencesCompanion extends UpdateCompanion<AppPreference> {
     Expression<String>? packageName,
     Expression<String>? appName,
     Expression<String>? status,
+    Expression<bool>? readOutLoud,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
@@ -2350,6 +2026,7 @@ class AppPreferencesCompanion extends UpdateCompanion<AppPreference> {
       if (packageName != null) 'package_name': packageName,
       if (appName != null) 'app_name': appName,
       if (status != null) 'status': status,
+      if (readOutLoud != null) 'read_out_loud': readOutLoud,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -2359,6 +2036,7 @@ class AppPreferencesCompanion extends UpdateCompanion<AppPreference> {
     Value<String>? packageName,
     Value<String>? appName,
     Value<String>? status,
+    Value<bool>? readOutLoud,
     Value<DateTime?>? updatedAt,
     Value<int>? rowid,
   }) {
@@ -2366,6 +2044,7 @@ class AppPreferencesCompanion extends UpdateCompanion<AppPreference> {
       packageName: packageName ?? this.packageName,
       appName: appName ?? this.appName,
       status: status ?? this.status,
+      readOutLoud: readOutLoud ?? this.readOutLoud,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
@@ -2383,6 +2062,9 @@ class AppPreferencesCompanion extends UpdateCompanion<AppPreference> {
     if (status.present) {
       map['status'] = Variable<String>(status.value);
     }
+    if (readOutLoud.present) {
+      map['read_out_loud'] = Variable<bool>(readOutLoud.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -2398,6 +2080,7 @@ class AppPreferencesCompanion extends UpdateCompanion<AppPreference> {
           ..write('packageName: $packageName, ')
           ..write('appName: $appName, ')
           ..write('status: $status, ')
+          ..write('readOutLoud: $readOutLoud, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -2411,7 +2094,6 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $NotificationsTable notifications = $NotificationsTable(this);
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $AppsTable apps = $AppsTable(this);
-  late final $SyncQueueTable syncQueue = $SyncQueueTable(this);
   late final $AppPreferencesTable appPreferences = $AppPreferencesTable(this);
   late final NotificationDao notificationDao = NotificationDao(
     this as AppDatabase,
@@ -2428,7 +2110,6 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     notifications,
     categories,
     apps,
-    syncQueue,
     appPreferences,
   ];
 }
@@ -2453,7 +2134,6 @@ typedef $$NotificationsTableCreateCompanionBuilder =
       Value<String?> extras,
       Value<String?> deviceId,
       Value<bool> isFavorite,
-      Value<bool> isSynced,
       Value<int> rowid,
     });
 typedef $$NotificationsTableUpdateCompanionBuilder =
@@ -2476,7 +2156,6 @@ typedef $$NotificationsTableUpdateCompanionBuilder =
       Value<String?> extras,
       Value<String?> deviceId,
       Value<bool> isFavorite,
-      Value<bool> isSynced,
       Value<int> rowid,
     });
 
@@ -2576,11 +2255,6 @@ class $$NotificationsTableFilterComposer
 
   ColumnFilters<bool> get isFavorite => $composableBuilder(
     column: $table.isFavorite,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get isSynced => $composableBuilder(
-    column: $table.isSynced,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -2683,11 +2357,6 @@ class $$NotificationsTableOrderingComposer
     column: $table.isFavorite,
     builder: (column) => ColumnOrderings(column),
   );
-
-  ColumnOrderings<bool> get isSynced => $composableBuilder(
-    column: $table.isSynced,
-    builder: (column) => ColumnOrderings(column),
-  );
 }
 
 class $$NotificationsTableAnnotationComposer
@@ -2764,9 +2433,6 @@ class $$NotificationsTableAnnotationComposer
     column: $table.isFavorite,
     builder: (column) => column,
   );
-
-  GeneratedColumn<bool> get isSynced =>
-      $composableBuilder(column: $table.isSynced, builder: (column) => column);
 }
 
 class $$NotificationsTableTableManager
@@ -2818,7 +2484,6 @@ class $$NotificationsTableTableManager
                 Value<String?> extras = const Value.absent(),
                 Value<String?> deviceId = const Value.absent(),
                 Value<bool> isFavorite = const Value.absent(),
-                Value<bool> isSynced = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NotificationsCompanion(
                 id: id,
@@ -2839,7 +2504,6 @@ class $$NotificationsTableTableManager
                 extras: extras,
                 deviceId: deviceId,
                 isFavorite: isFavorite,
-                isSynced: isSynced,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2862,7 +2526,6 @@ class $$NotificationsTableTableManager
                 Value<String?> extras = const Value.absent(),
                 Value<String?> deviceId = const Value.absent(),
                 Value<bool> isFavorite = const Value.absent(),
-                Value<bool> isSynced = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NotificationsCompanion.insert(
                 id: id,
@@ -2883,7 +2546,6 @@ class $$NotificationsTableTableManager
                 extras: extras,
                 deviceId: deviceId,
                 isFavorite: isFavorite,
-                isSynced: isSynced,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -3284,196 +2946,12 @@ typedef $$AppsTableProcessedTableManager =
       App,
       PrefetchHooks Function()
     >;
-typedef $$SyncQueueTableCreateCompanionBuilder =
-    SyncQueueCompanion Function({
-      required String notificationId,
-      Value<String> status,
-      Value<int> retryCount,
-      required DateTime createdAt,
-      Value<int> rowid,
-    });
-typedef $$SyncQueueTableUpdateCompanionBuilder =
-    SyncQueueCompanion Function({
-      Value<String> notificationId,
-      Value<String> status,
-      Value<int> retryCount,
-      Value<DateTime> createdAt,
-      Value<int> rowid,
-    });
-
-class $$SyncQueueTableFilterComposer
-    extends Composer<_$AppDatabase, $SyncQueueTable> {
-  $$SyncQueueTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get notificationId => $composableBuilder(
-    column: $table.notificationId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get status => $composableBuilder(
-    column: $table.status,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get retryCount => $composableBuilder(
-    column: $table.retryCount,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-}
-
-class $$SyncQueueTableOrderingComposer
-    extends Composer<_$AppDatabase, $SyncQueueTable> {
-  $$SyncQueueTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get notificationId => $composableBuilder(
-    column: $table.notificationId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get status => $composableBuilder(
-    column: $table.status,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get retryCount => $composableBuilder(
-    column: $table.retryCount,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-}
-
-class $$SyncQueueTableAnnotationComposer
-    extends Composer<_$AppDatabase, $SyncQueueTable> {
-  $$SyncQueueTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get notificationId => $composableBuilder(
-    column: $table.notificationId,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get status =>
-      $composableBuilder(column: $table.status, builder: (column) => column);
-
-  GeneratedColumn<int> get retryCount => $composableBuilder(
-    column: $table.retryCount,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-}
-
-class $$SyncQueueTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $SyncQueueTable,
-          SyncQueueData,
-          $$SyncQueueTableFilterComposer,
-          $$SyncQueueTableOrderingComposer,
-          $$SyncQueueTableAnnotationComposer,
-          $$SyncQueueTableCreateCompanionBuilder,
-          $$SyncQueueTableUpdateCompanionBuilder,
-          (
-            SyncQueueData,
-            BaseReferences<_$AppDatabase, $SyncQueueTable, SyncQueueData>,
-          ),
-          SyncQueueData,
-          PrefetchHooks Function()
-        > {
-  $$SyncQueueTableTableManager(_$AppDatabase db, $SyncQueueTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$SyncQueueTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$SyncQueueTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$SyncQueueTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> notificationId = const Value.absent(),
-                Value<String> status = const Value.absent(),
-                Value<int> retryCount = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => SyncQueueCompanion(
-                notificationId: notificationId,
-                status: status,
-                retryCount: retryCount,
-                createdAt: createdAt,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String notificationId,
-                Value<String> status = const Value.absent(),
-                Value<int> retryCount = const Value.absent(),
-                required DateTime createdAt,
-                Value<int> rowid = const Value.absent(),
-              }) => SyncQueueCompanion.insert(
-                notificationId: notificationId,
-                status: status,
-                retryCount: retryCount,
-                createdAt: createdAt,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
-              .toList(),
-          prefetchHooksCallback: null,
-        ),
-      );
-}
-
-typedef $$SyncQueueTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $SyncQueueTable,
-      SyncQueueData,
-      $$SyncQueueTableFilterComposer,
-      $$SyncQueueTableOrderingComposer,
-      $$SyncQueueTableAnnotationComposer,
-      $$SyncQueueTableCreateCompanionBuilder,
-      $$SyncQueueTableUpdateCompanionBuilder,
-      (
-        SyncQueueData,
-        BaseReferences<_$AppDatabase, $SyncQueueTable, SyncQueueData>,
-      ),
-      SyncQueueData,
-      PrefetchHooks Function()
-    >;
 typedef $$AppPreferencesTableCreateCompanionBuilder =
     AppPreferencesCompanion Function({
       required String packageName,
       required String appName,
       Value<String> status,
+      Value<bool> readOutLoud,
       Value<DateTime?> updatedAt,
       Value<int> rowid,
     });
@@ -3482,6 +2960,7 @@ typedef $$AppPreferencesTableUpdateCompanionBuilder =
       Value<String> packageName,
       Value<String> appName,
       Value<String> status,
+      Value<bool> readOutLoud,
       Value<DateTime?> updatedAt,
       Value<int> rowid,
     });
@@ -3507,6 +2986,11 @@ class $$AppPreferencesTableFilterComposer
 
   ColumnFilters<String> get status => $composableBuilder(
     column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get readOutLoud => $composableBuilder(
+    column: $table.readOutLoud,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3540,6 +3024,11 @@ class $$AppPreferencesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get readOutLoud => $composableBuilder(
+    column: $table.readOutLoud,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -3565,6 +3054,11 @@ class $$AppPreferencesTableAnnotationComposer
 
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<bool> get readOutLoud => $composableBuilder(
+    column: $table.readOutLoud,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -3606,12 +3100,14 @@ class $$AppPreferencesTableTableManager
                 Value<String> packageName = const Value.absent(),
                 Value<String> appName = const Value.absent(),
                 Value<String> status = const Value.absent(),
+                Value<bool> readOutLoud = const Value.absent(),
                 Value<DateTime?> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => AppPreferencesCompanion(
                 packageName: packageName,
                 appName: appName,
                 status: status,
+                readOutLoud: readOutLoud,
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
@@ -3620,12 +3116,14 @@ class $$AppPreferencesTableTableManager
                 required String packageName,
                 required String appName,
                 Value<String> status = const Value.absent(),
+                Value<bool> readOutLoud = const Value.absent(),
                 Value<DateTime?> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => AppPreferencesCompanion.insert(
                 packageName: packageName,
                 appName: appName,
                 status: status,
+                readOutLoud: readOutLoud,
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
@@ -3663,8 +3161,6 @@ class $AppDatabaseManager {
   $$CategoriesTableTableManager get categories =>
       $$CategoriesTableTableManager(_db, _db.categories);
   $$AppsTableTableManager get apps => $$AppsTableTableManager(_db, _db.apps);
-  $$SyncQueueTableTableManager get syncQueue =>
-      $$SyncQueueTableTableManager(_db, _db.syncQueue);
   $$AppPreferencesTableTableManager get appPreferences =>
       $$AppPreferencesTableTableManager(_db, _db.appPreferences);
 }
