@@ -59,7 +59,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       colorShadow: const Color(0xFF0B0F19),
       textSkip: "SKIP",
       textStyleSkip: TextStyle(
-        color: Colors.white.withOpacity(0.6),
+        color: Colors.white.withValues(alpha: 0.6),
         fontWeight: FontWeight.w600,
         fontSize: 14,
         letterSpacing: 0.5,
@@ -817,7 +817,6 @@ class _SettingsTile extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback onTap;
   final Color iconColor;
-  final bool enabled;
 
   const _SettingsTile({
     super.key,
@@ -827,49 +826,45 @@ class _SettingsTile extends StatelessWidget {
     this.trailing,
     required this.onTap,
     required this.iconColor,
-    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Opacity(
-      opacity: enabled ? 1.0 : 0.45,
-      child: Material(
-        color: Colors.transparent,
-        child: ListTile(
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          leading: Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Center(
-              child: HugeIcon(icon: icon, color: iconColor, size: 18),
-            ),
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: iconColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
           ),
-          title: Text(
-            title,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
+          child: Center(
+            child: HugeIcon(icon: icon, color: iconColor, size: 18),
           ),
-          subtitle: Text(
-            subtitle,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontSize: 11,
-            ),
-          ),
-          trailing:
-              trailing ?? const HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, size: 16, color: Colors.grey),
-          onTap: enabled ? onTap : null,
         ),
+        title: Text(
+          title,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontSize: 11,
+          ),
+        ),
+        trailing:
+            trailing ?? const HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, size: 16, color: Colors.grey),
+        onTap: onTap,
       ),
     );
   }
@@ -902,13 +897,13 @@ class _SettingsTutorialCard extends StatelessWidget {
     final primaryColor = theme.colorScheme.primary;
 
     final cardColors = isDark
-        ? [const Color(0xFF1E293B).withOpacity(0.95), const Color(0xFF0F172A).withOpacity(0.98)]
-        : [Colors.white.withOpacity(0.97), const Color(0xFFF8FAFC).withOpacity(0.98)];
-    final borderColor = isDark ? primaryColor.withOpacity(0.2) : const Color(0xFFE2E8F0);
+        ? [const Color(0xFF1E293B).withValues(alpha: 0.95), const Color(0xFF0F172A).withValues(alpha: 0.98)]
+        : [Colors.white.withValues(alpha: 0.97), const Color(0xFFF8FAFC).withValues(alpha: 0.98)];
+    final borderColor = isDark ? primaryColor.withValues(alpha: 0.2) : const Color(0xFFE2E8F0);
     final titleColor = isDark ? Colors.white : const Color(0xFF0F172A);
-    final descColor = isDark ? Colors.white.withOpacity(0.6) : const Color(0xFF64748B);
-    final inactiveDotColor = isDark ? Colors.white.withOpacity(0.15) : const Color(0xFFE2E8F0);
-    final shadowColor = isDark ? Colors.black.withOpacity(0.3) : Colors.black.withOpacity(0.08);
+    final descColor = isDark ? Colors.white.withValues(alpha: 0.6) : const Color(0xFF64748B);
+    final inactiveDotColor = isDark ? Colors.white.withValues(alpha: 0.15) : const Color(0xFFE2E8F0);
+    final shadowColor = isDark ? Colors.black.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.08);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -922,7 +917,7 @@ class _SettingsTutorialCard extends StatelessWidget {
         border: Border.all(color: borderColor, width: 1),
         boxShadow: [
           BoxShadow(
-            color: primaryColor.withOpacity(isDark ? 0.08 : 0.06),
+            color: primaryColor.withValues(alpha: isDark ? 0.08 : 0.06),
             blurRadius: 24,
             spreadRadius: 0,
             offset: const Offset(0, 8),
@@ -950,10 +945,10 @@ class _SettingsTutorialCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: primaryColor.withOpacity(isDark ? 0.15 : 0.08),
+                        color: primaryColor.withValues(alpha: isDark ? 0.15 : 0.08),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: primaryColor.withOpacity(isDark ? 0.3 : 0.15),
+                          color: primaryColor.withValues(alpha: isDark ? 0.3 : 0.15),
                           width: 0.5,
                         ),
                       ),
@@ -971,7 +966,7 @@ class _SettingsTutorialCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: primaryColor.withOpacity(isDark ? 0.1 : 0.06),
+                        color: primaryColor.withValues(alpha: isDark ? 0.1 : 0.06),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: HugeIcon(icon: icon, color: primaryColor, size: 18),
@@ -1026,12 +1021,12 @@ class _SettingsTutorialCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [primaryColor, primaryColor.withOpacity(0.85)],
+                            colors: [primaryColor, primaryColor.withValues(alpha: 0.85)],
                           ),
                           borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(
-                              color: primaryColor.withOpacity(0.3),
+                              color: primaryColor.withValues(alpha: 0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),

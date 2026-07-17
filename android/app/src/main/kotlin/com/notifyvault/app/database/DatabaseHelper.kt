@@ -134,7 +134,6 @@ object DatabaseHelper {
                 put("conversation_id", conversationId)
                 put("icon_path", iconPath)
                 put("is_favorite", 0) // default false
-                put("is_synced", 0) // default false
             }
 
             val rowId = db.insertWithOnConflict("notifications", null, values, SQLiteDatabase.CONFLICT_REPLACE)

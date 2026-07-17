@@ -38,10 +38,18 @@ class AppDatabase extends _$AppDatabase {
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from < 2) {
-          await m.createTable(appPreferences);
+          try {
+            await m.createTable(appPreferences);
+          } catch (_) {
+            // Table may already exist from a prior install/test — safe to ignore
+          }
         }
         if (from < 3) {
-          await m.addColumn(appPreferences, appPreferences.readOutLoud);
+          try {
+            await m.addColumn(appPreferences, appPreferences.readOutLoud);
+          } catch (_) {
+            // Column may already exist from a prior install/test — safe to ignore
+          }
         }
       },
     );

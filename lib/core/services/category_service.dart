@@ -151,7 +151,7 @@ class CategoryService {
     final content =
         '${title ?? ''} ${body ?? ''} ${bigText ?? ''}'.toLowerCase();
 
-    if (content.isEmpty) return 'other';
+    if (content.trim().isEmpty) return 'other';
 
     // 1. Check OTP first (highest priority)
     if (_containsOtp(content)) return 'otp';

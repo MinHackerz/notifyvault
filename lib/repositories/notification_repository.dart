@@ -6,7 +6,6 @@ import '../database/app_database.dart';
 import '../models/notification_model.dart';
 import '../core/services/category_service.dart';
 import '../core/services/notification_channel_service.dart';
-import '../core/services/tts_service.dart';
 
 /// Repository that bridges the notification data layer — platform channel,
 /// local database, and category service.
@@ -72,15 +71,9 @@ class NotificationRepository {
     }
 
     // Skip blocked apps — don't save their notifications
-    bool readOutLoud = false;
     try {
       final isBlocked = await _db.appPreferencesDao.isBlocked(model.packageName);
       if (isBlocked) return;
-      
-      final pref = await _db.appPreferencesDao.getPreference(model.packageName);
-      if (pref != null) {
-        readOutLoud = pref.readOutLoud;
-      }
     } catch (e) {
       debugPrint('Error checking preferences: $e');
     }

@@ -5,7 +5,7 @@ class AppConfig {
   // ─── App Info ───
   static const String appName = 'NotifyVault';
   static const String appTagline = 'Never Lose a Notification Again';
-  static const String appVersion = '1.0.1';
+  static const String appVersion = '1.0.2';
 
   // ─── Platform Channels ───
   static const String notificationMethodChannel =
@@ -15,7 +15,7 @@ class AppConfig {
 
   // ─── Database ───
   static const String databaseName = 'notify_vault.db';
-  static const int databaseVersion = 1;
+  static const int databaseVersion = 3;
 
   // ─── Pagination ───
   static const int pageSize = 30;
