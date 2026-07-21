@@ -2095,6 +2095,26 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $AppsTable apps = $AppsTable(this);
   late final $AppPreferencesTable appPreferences = $AppPreferencesTable(this);
+  late final Index idxNotificationsTimestamp = Index(
+    'idx_notifications_timestamp',
+    'CREATE INDEX idx_notifications_timestamp ON notifications (timestamp)',
+  );
+  late final Index idxNotificationsPackage = Index(
+    'idx_notifications_package',
+    'CREATE INDEX idx_notifications_package ON notifications (package_name)',
+  );
+  late final Index idxNotificationsCategory = Index(
+    'idx_notifications_category',
+    'CREATE INDEX idx_notifications_category ON notifications (category)',
+  );
+  late final Index idxNotificationsIsRead = Index(
+    'idx_notifications_is_read',
+    'CREATE INDEX idx_notifications_is_read ON notifications (is_read)',
+  );
+  late final Index idxNotificationsIsFavorite = Index(
+    'idx_notifications_is_favorite',
+    'CREATE INDEX idx_notifications_is_favorite ON notifications (is_favorite)',
+  );
   late final NotificationDao notificationDao = NotificationDao(
     this as AppDatabase,
   );
@@ -2111,6 +2131,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     categories,
     apps,
     appPreferences,
+    idxNotificationsTimestamp,
+    idxNotificationsPackage,
+    idxNotificationsCategory,
+    idxNotificationsIsRead,
+    idxNotificationsIsFavorite,
   ];
 }
 

@@ -181,6 +181,12 @@ class NotificationDao extends DatabaseAccessor<AppDatabase>
     return (delete(notifications)..where((t) => t.id.equals(id))).go();
   }
 
+  /// Delete multiple notifications by ID.
+  Future<int> deleteNotifications(List<String> ids) {
+    if (ids.isEmpty) return Future.value(0);
+    return (delete(notifications)..where((t) => t.id.isIn(ids))).go();
+  }
+
   /// Delete notifications older than the given date.
   Future<int> deleteOlderThan(DateTime date) {
     return (delete(notifications)

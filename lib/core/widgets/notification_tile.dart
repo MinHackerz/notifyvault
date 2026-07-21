@@ -327,20 +327,12 @@ class NotificationTile extends StatelessWidget {
           )
         : cardWidget;
 
-    return wrappedWidget
-        .animate()
-        .fadeIn(duration: 250.ms, curve: Curves.easeOutQuad)
-        .slideY(begin: 0.08, end: 0, duration: 250.ms, curve: Curves.easeOutQuad);
+    return RepaintBoundary(child: wrappedWidget);
   }
 
   Widget _buildAvatar(ThemeData theme, CategoryModel category, bool isDark) {
-    String? path = notification.iconPath;
-    if (path == null || path.isEmpty) {
-      path = '/data/user/0/com.notifyvault.app/files/icons/${notification.packageName}.png';
-    }
-
-    final file = File(path);
-    if (file.existsSync()) {
+    final path = notification.iconPath;
+    if (path != null && path.isNotEmpty) {
       return Container(
         width: 44,
         height: 44,
@@ -354,9 +346,11 @@ class NotificationTile extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(7),
           child: Image.file(
-            file,
+            File(path),
             width: 44,
             height: 44,
+            cacheWidth: 88,
+            cacheHeight: 88,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) =>
                 _buildFallbackAvatar(theme, category),

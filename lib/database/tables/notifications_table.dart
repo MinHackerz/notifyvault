@@ -1,6 +1,11 @@
 import 'package:drift/drift.dart';
 
 /// Drift table for stored notifications.
+@TableIndex(name: 'idx_notifications_timestamp', columns: {#timestamp})
+@TableIndex(name: 'idx_notifications_package', columns: {#packageName})
+@TableIndex(name: 'idx_notifications_category', columns: {#category})
+@TableIndex(name: 'idx_notifications_is_read', columns: {#isRead})
+@TableIndex(name: 'idx_notifications_is_favorite', columns: {#isFavorite})
 class Notifications extends Table {
   // Primary key
   TextColumn get id => text()();

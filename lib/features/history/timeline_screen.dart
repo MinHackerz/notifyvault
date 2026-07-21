@@ -70,6 +70,7 @@ class TimelineScreen extends ConsumerWidget {
               isHeader: true,
               headerTitle: entry.key.label,
               headerCount: entry.value.length,
+              groupNotifications: entry.value,
             ));
             for (final notification in entry.value) {
               flatItems.add(_TimelineItem(
@@ -94,6 +95,12 @@ class TimelineScreen extends ConsumerWidget {
                         return _GroupHeader(
                           title: item.headerTitle!,
                           count: item.headerCount!,
+                          onDelete: () => _confirmDeleteGroup(
+                            context,
+                            ref,
+                            title: item.headerTitle!,
+                            notifications: item.groupNotifications!,
+                          ),
                         );
                       }
 
@@ -143,6 +150,117 @@ class TimelineScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _confirmDeleteGroup(
+    BuildContext context,
+    WidgetRef ref, {
+    required String title,
+    required List<NotificationModel> notifications,
+  }) async {
+    final count = notifications.length;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        final theme = Theme.of(dialogContext);
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.error.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedDelete02,
+                  color: theme.colorScheme.error,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Delete $title Notifications',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            'Are you sure you want to delete $count notification${count == 1 ? '' : 's'} from $title? This action cannot be undone.',
+            style: theme.textTheme.bodyMedium,
+          ),
+          actions: [
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      side: BorderSide(
+                        color: theme.colorScheme.outline.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    onPressed: () => Navigator.pop(dialogContext, false),
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.error,
+                      foregroundColor: theme.colorScheme.onError,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () => Navigator.pop(dialogContext, true),
+                    child: const Text(
+                      'Delete All',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true && context.mounted) {
+      final ids = notifications.map((n) => n.id).toList();
+      await ref.read(notificationRepositoryProvider).deleteNotifications(ids);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Deleted $count notification${count == 1 ? '' : 's'}'),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
   }
 
   void _showFilterSheet(BuildContext context, WidgetRef ref) {
@@ -335,12 +453,14 @@ class _TimelineItem {
   final bool isHeader;
   final String? headerTitle;
   final int? headerCount;
+  final List<NotificationModel>? groupNotifications;
   final NotificationModel? notification;
 
   _TimelineItem({
     required this.isHeader,
     this.headerTitle,
     this.headerCount,
+    this.groupNotifications,
     this.notification,
   });
 }
@@ -348,14 +468,33 @@ class _TimelineItem {
 class _GroupHeader extends StatelessWidget {
   final String title;
   final int count;
+  final VoidCallback onDelete;
 
-  const _GroupHeader({required this.title, required this.count});
+  const _GroupHeader({
+    required this.title,
+    required this.count,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return SectionHeader(
       index: count < 10 ? '0$count' : '$count',
       title: title,
+      action: IconButton(
+        icon: HugeIcon(
+          icon: HugeIcons.strokeRoundedDelete02,
+          size: 16,
+          color: theme.colorScheme.error.withValues(alpha: 0.7),
+        ),
+        tooltip: 'Delete all $title notifications',
+        visualDensity: VisualDensity.compact,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(),
+        onPressed: onDelete,
+      ),
     );
   }
 }

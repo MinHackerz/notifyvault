@@ -68,38 +68,59 @@ final filteredTimelineNotificationsProvider =
 });
 
 /// Today's notification count.
-final todayCountProvider = FutureProvider<int>((ref) {
-  ref.watch(notificationStreamProvider); // Invalidate when notifications change
-  final repo = ref.watch(notificationRepositoryProvider);
-  return repo.getTodayCount();
+final todayCountProvider = Provider<AsyncValue<int>>((ref) {
+  final notificationsAsync = ref.watch(notificationStreamProvider);
+  return notificationsAsync.whenData((list) {
+    final now = DateTime.now();
+    final startOfDay = DateTime(now.year, now.month, now.day);
+    return list
+        .where((n) =>
+            n.timestamp.isAfter(startOfDay) ||
+            n.timestamp.isAtSameMomentAs(startOfDay))
+        .length;
+  });
 });
 
 /// Unread notification count.
-final unreadCountProvider = FutureProvider<int>((ref) {
-  ref.watch(notificationStreamProvider);
-  final repo = ref.watch(notificationRepositoryProvider);
-  return repo.getUnreadCount();
+final unreadCountProvider = Provider<AsyncValue<int>>((ref) {
+  final notificationsAsync = ref.watch(notificationStreamProvider);
+  return notificationsAsync
+      .whenData((list) => list.where((n) => !n.isRead).length);
 });
 
 /// Total notification count.
-final totalCountProvider = FutureProvider<int>((ref) {
-  ref.watch(notificationStreamProvider);
-  final repo = ref.watch(notificationRepositoryProvider);
-  return repo.getTotalCount();
+final totalCountProvider = Provider<AsyncValue<int>>((ref) {
+  final notificationsAsync = ref.watch(notificationStreamProvider);
+  return notificationsAsync.whenData((list) => list.length);
 });
 
 /// Active apps today count.
-final activeAppsTodayProvider = FutureProvider<int>((ref) {
-  ref.watch(notificationStreamProvider);
-  final repo = ref.watch(notificationRepositoryProvider);
-  return repo.getActiveAppsToday();
+final activeAppsTodayProvider = Provider<AsyncValue<int>>((ref) {
+  final notificationsAsync = ref.watch(notificationStreamProvider);
+  return notificationsAsync.whenData((list) {
+    final now = DateTime.now();
+    final startOfDay = DateTime(now.year, now.month, now.day);
+    return list
+        .where((n) =>
+            n.timestamp.isAfter(startOfDay) ||
+            n.timestamp.isAtSameMomentAs(startOfDay))
+        .map((n) => n.packageName)
+        .toSet()
+        .length;
+  });
 });
 
 /// Category counts map.
-final categoryCoutsProvider = FutureProvider<Map<String, int>>((ref) {
-  ref.watch(notificationStreamProvider);
-  final repo = ref.watch(notificationRepositoryProvider);
-  return repo.getCategoryCounts();
+final categoryCoutsProvider = Provider<AsyncValue<Map<String, int>>>((ref) {
+  final notificationsAsync = ref.watch(notificationStreamProvider);
+  return notificationsAsync.whenData((list) {
+    final counts = <String, int>{};
+    for (final n in list) {
+      final cat = n.category.isEmpty ? 'other' : n.category;
+      counts[cat] = (counts[cat] ?? 0) + 1;
+    }
+    return counts;
+  });
 });
 
 /// Single notification detail provider.

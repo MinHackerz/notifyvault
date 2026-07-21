@@ -248,6 +248,10 @@ class NotificationRepository {
   Future<void> deleteNotification(String id) =>
       _db.notificationDao.deleteNotification(id);
 
+  /// Delete multiple notifications.
+  Future<int> deleteNotifications(List<String> ids) =>
+      _db.notificationDao.deleteNotifications(ids);
+
   /// Delete old notifications (retention policy).
   Future<int> deleteOlderThan(int days) {
     final cutoff = DateTime.now().subtract(Duration(days: days));
