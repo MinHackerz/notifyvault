@@ -31,7 +31,7 @@ android {
     defaultConfig {
         applicationId = "com.notifyvault.app"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
