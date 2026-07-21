@@ -20,6 +20,8 @@ import '../../features/settings/read_out_loud_apps_screen.dart';
 import '../../features/categories/category_screen.dart';
 import '../../features/statistics/statistics_screen.dart';
 import '../../core/widgets/banner_ad_widget.dart';
+import '../../providers/notification_providers.dart';
+import '../../providers/statistics_providers.dart';
 import '../theme/app_colors.dart';
 
 /// Route paths.
@@ -216,7 +218,7 @@ class MainShell extends ConsumerStatefulWidget {
   ConsumerState<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends ConsumerState<MainShell> {
+class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserver {
   late TutorialCoachMark tutorialCoachMark;
   
   // Keys for tutorial targets
@@ -229,9 +231,26 @@ class _MainShellState extends ConsumerState<MainShell> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndShowTour();
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.invalidate(notificationStreamProvider);
+      ref.invalidate(statsSummaryProvider);
+      ref.invalidate(topAppsStatsProvider);
+      ref.invalidate(top5AppsStatsProvider);
+    }
   }
 
   Future<void> _checkAndShowTour() async {

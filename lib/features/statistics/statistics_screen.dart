@@ -7,13 +7,32 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../app/theme/app_colors.dart';
 import '../../providers/statistics_providers.dart';
 import '../../providers/settings_providers.dart';
+import '../../providers/notification_providers.dart';
 import '../../core/widgets/section_header.dart';
 
-class StatisticsScreen extends ConsumerWidget {
+class StatisticsScreen extends ConsumerStatefulWidget {
   const StatisticsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StatisticsScreen> createState() => _StatisticsScreenState();
+}
+
+class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      if (mounted) {
+        ref.invalidate(notificationStreamProvider);
+        ref.invalidate(statsSummaryProvider);
+        ref.invalidate(topAppsStatsProvider);
+        ref.invalidate(top5AppsStatsProvider);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final days = ref.watch(statsTimeRangeProvider);
 
@@ -54,28 +73,37 @@ class StatisticsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-        children: [
-          // Summary Cards
-          const SectionHeader(index: '01', title: 'Summary'),
-          const SizedBox(height: 8),
-          _SummaryCards(),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(notificationStreamProvider);
+          ref.invalidate(statsSummaryProvider);
+          ref.invalidate(topAppsStatsProvider);
+          ref.invalidate(top5AppsStatsProvider);
+        },
+        color: AppColors.primary,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+          children: [
+            // Summary Cards
+            const SectionHeader(index: '01', title: 'Summary'),
+            const SizedBox(height: 8),
+            _SummaryCards(),
 
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-          // Top 5 Apps Chart
-          const SectionHeader(index: '02', title: 'Top 5 Apps'),
-          const SizedBox(height: 8),
-          _TopAppsChart(),
+            // Top 5 Apps Chart
+            const SectionHeader(index: '02', title: 'Top 5 Apps'),
+            const SizedBox(height: 8),
+            _TopAppsChart(),
 
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-          // All Apps Table
-          const SectionHeader(index: '03', title: 'All Apps'),
-          const SizedBox(height: 8),
-          _AllAppsTable(),
-        ],
+            // All Apps Table
+            const SectionHeader(index: '03', title: 'All Apps'),
+            const SizedBox(height: 8),
+            _AllAppsTable(),
+          ],
+        ),
       ),
     );
   }

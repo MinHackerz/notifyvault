@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import '../database/app_database.dart';
 import '../providers/settings_providers.dart';
+import 'notification_providers.dart';
 
 /// Time range for statistics (in days).
 final statsTimeRangeProvider =
@@ -21,6 +22,7 @@ class StatsTimeRangeNotifier extends Notifier<int> {
 /// Stats summary: total received in range.
 final statsSummaryProvider =
     FutureProvider<StatsSummary>((ref) async {
+  ref.watch(notificationStreamProvider);
   final days = ref.watch(statsTimeRangeProvider);
   final since = DateTime.now().subtract(Duration(days: days));
   final db = AppDatabase.instance;
@@ -42,6 +44,7 @@ final statsSummaryProvider =
 /// Top N apps by notification count within the time range.
 final topAppsStatsProvider =
     FutureProvider<List<AppStatEntry>>((ref) async {
+  ref.watch(notificationStreamProvider);
   final days = ref.watch(statsTimeRangeProvider);
   final since = DateTime.now().subtract(Duration(days: days));
   final counts =
