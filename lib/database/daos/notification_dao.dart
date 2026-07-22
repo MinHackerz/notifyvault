@@ -27,7 +27,7 @@ class NotificationDao extends DatabaseAccessor<AppDatabase>
   }
 
   /// Watch all notifications as a reactive stream.
-  Stream<List<Notification>> watchNotifications({int limit = 100}) {
+  Stream<List<Notification>> watchNotifications({int limit = 1000}) {
     return (select(notifications)
           ..orderBy([(t) => OrderingTerm.desc(t.timestamp)])
           ..limit(limit))

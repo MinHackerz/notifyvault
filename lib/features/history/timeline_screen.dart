@@ -8,6 +8,7 @@ import '../../core/widgets/notification_tile.dart';
 import '../../core/widgets/shimmer_loading.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/section_header.dart';
+import '../../core/widgets/fading_app_bar.dart';
 import '../../models/notification_model.dart';
 import '../../models/category_model.dart';
 
@@ -18,48 +19,50 @@ class TimelineScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final groupedAsync = ref.watch(filteredTimelineNotificationsProvider);
     final activeFilter = ref.watch(timelineFilterProvider);
-    final hasActiveFilter = activeFilter.categoryId != null || activeFilter.onlyUnread != null;
+    final hasActiveFilter = activeFilter.hasActiveFilter;
+    final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Timeline',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.5,
-              ),
-        ),
-        actions: [
-          IconButton(
-            icon: Container(
-              padding: hasActiveFilter ? const EdgeInsets.all(6) : EdgeInsets.zero,
-              decoration: hasActiveFilter
-                  ? BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
-                    )
-                  : null,
-              child: HugeIcon(
-                icon: hasActiveFilter
-                    ? HugeIcons.strokeRoundedFilterHorizontal
-                    : HugeIcons.strokeRoundedFilter,
-                size: 20,
-                color: hasActiveFilter
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onSurface,
-              ),
+    return FadingScaffold(
+      title: Text(
+        'Timeline',
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
             ),
-            onPressed: () => _showFilterSheet(context, ref),
-          ),
-        ],
       ),
+      actions: [
+        IconButton(
+          icon: Container(
+            padding: hasActiveFilter ? const EdgeInsets.all(6) : EdgeInsets.zero,
+            decoration: hasActiveFilter
+                ? BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  )
+                : null,
+            child: HugeIcon(
+              icon: hasActiveFilter
+                  ? HugeIcons.strokeRoundedFilterHorizontal
+                  : HugeIcons.strokeRoundedFilter,
+              size: 20,
+              color: hasActiveFilter
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+          onPressed: () => _showFilterSheet(context, ref),
+        ),
+      ],
       body: groupedAsync.when(
         data: (grouped) {
           if (grouped.isEmpty) {
-            return EmptyState(
-              icon: HugeIcons.strokeRoundedClock01,
-              title: 'No notifications yet',
-              subtitle: 'Notifications matching filters will appear here.',
+            return Padding(
+              padding: EdgeInsets.only(top: topPadding),
+              child: EmptyState(
+                icon: HugeIcons.strokeRoundedClock01,
+                title: 'No notifications yet',
+                subtitle: 'Notifications matching filters will appear here.',
+              ),
             );
           }
 
@@ -84,9 +87,13 @@ class TimelineScreen extends ConsumerWidget {
             onRefresh: () async {
               ref.invalidate(notificationStreamProvider);
             },
+            edgeOffset: topPadding,
             color: AppColors.primary,
             child: CustomScrollView(
               slivers: [
+                SliverToBoxAdapter(
+                  child: SizedBox(height: topPadding),
+                ),
                 SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
@@ -138,14 +145,20 @@ class TimelineScreen extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const ShimmerLoading(),
-        error: (error, _) => EmptyState(
-          icon: HugeIcons.strokeRoundedAlertCircle,
-          title: 'Something went wrong',
-          subtitle: error.toString(),
-          action: ElevatedButton(
-            onPressed: () => ref.invalidate(notificationStreamProvider),
-            child: const Text('Retry'),
+        loading: () => Padding(
+          padding: EdgeInsets.only(top: topPadding),
+          child: const ShimmerLoading(),
+        ),
+        error: (error, _) => Padding(
+          padding: EdgeInsets.only(top: topPadding),
+          child: EmptyState(
+            icon: HugeIcons.strokeRoundedAlertCircle,
+            title: 'Something went wrong',
+            subtitle: error.toString(),
+            action: ElevatedButton(
+              onPressed: () => ref.invalidate(notificationStreamProvider),
+              child: const Text('Retry'),
+            ),
           ),
         ),
       ),
@@ -298,12 +311,12 @@ class TimelineScreen extends ConsumerWidget {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          if (activeFilter.categoryId != null || activeFilter.onlyUnread != null)
+                          if (activeFilter.hasActiveFilter)
                             TextButton(
                               onPressed: () {
                                 ref.read(timelineFilterProvider.notifier).setFilter(
-                                    const TimelineFilter(),
-                                 );
+                                      const TimelineFilter(),
+                                    );
                                 Navigator.pop(context);
                               },
                               style: TextButton.styleFrom(
@@ -329,10 +342,9 @@ class TimelineScreen extends ConsumerWidget {
                             label: 'All',
                             isSelected: activeFilter.onlyUnread == null,
                             onTap: () {
-                              ref.read(timelineFilterProvider.notifier).setFilter(TimelineFilter(
-                                categoryId: activeFilter.categoryId,
-                                onlyUnread: null,
-                              ));
+                              ref.read(timelineFilterProvider.notifier).setFilter(
+                                activeFilter.copyWith(onlyUnread: null),
+                              );
                             },
                           ),
                           const SizedBox(width: 8),
@@ -341,10 +353,10 @@ class TimelineScreen extends ConsumerWidget {
                             label: 'Unread',
                             isSelected: activeFilter.onlyUnread == true,
                             onTap: () {
-                              ref.read(timelineFilterProvider.notifier).setFilter(TimelineFilter(
-                                categoryId: activeFilter.categoryId,
-                                onlyUnread: true,
-                              ));
+                              final isSel = activeFilter.onlyUnread == true;
+                              ref.read(timelineFilterProvider.notifier).setFilter(
+                                activeFilter.copyWith(onlyUnread: isSel ? null : true),
+                              );
                             },
                           ),
                           const SizedBox(width: 8),
@@ -353,10 +365,10 @@ class TimelineScreen extends ConsumerWidget {
                             label: 'Read',
                             isSelected: activeFilter.onlyUnread == false,
                             onTap: () {
-                              ref.read(timelineFilterProvider.notifier).setFilter(TimelineFilter(
-                                categoryId: activeFilter.categoryId,
-                                onlyUnread: false,
-                              ));
+                              final isSel = activeFilter.onlyUnread == false;
+                              ref.read(timelineFilterProvider.notifier).setFilter(
+                                activeFilter.copyWith(onlyUnread: isSel ? null : false),
+                              );
                             },
                           ),
                         ],
@@ -381,11 +393,14 @@ class TimelineScreen extends ConsumerWidget {
                             child: FilterChip(
                               label: Text(cat.name),
                               selected: isSelected,
+                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              visualDensity: VisualDensity.compact,
                               onSelected: (selected) {
-                                ref.read(timelineFilterProvider.notifier).setFilter(TimelineFilter(
-                                  categoryId: selected ? cat.id : null,
-                                  onlyUnread: activeFilter.onlyUnread,
-                                ));
+                                ref.read(timelineFilterProvider.notifier).setFilter(
+                                  activeFilter.copyWith(
+                                    categoryId: selected ? cat.id : null,
+                                  ),
+                                );
                               },
                               selectedColor: cat.color.withValues(alpha: 0.15),
                               checkmarkColor: cat.color,
@@ -405,6 +420,117 @@ class TimelineScreen extends ConsumerWidget {
                             ),
                           );
                         },
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // Date Filters
+                    const SectionHeader(index: '03', title: 'Date Range'),
+                    SizedBox(
+                      height: 40,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        children: [
+                          _buildFilterChip(
+                            context: context,
+                            label: 'All Time',
+                            isSelected: !activeFilter.hasDateFilter,
+                            onTap: () {
+                              ref.read(timelineFilterProvider.notifier).setFilter(
+                                activeFilter.copyWith(datePreset: null, customDate: null),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _buildFilterChip(
+                            context: context,
+                            label: 'Today',
+                            isSelected: activeFilter.datePreset == 'today',
+                            onTap: () {
+                              final isSel = activeFilter.datePreset == 'today';
+                              ref.read(timelineFilterProvider.notifier).setFilter(
+                                activeFilter.copyWith(
+                                  datePreset: isSel ? null : 'today',
+                                  customDate: null,
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _buildFilterChip(
+                            context: context,
+                            label: 'Yesterday',
+                            isSelected: activeFilter.datePreset == 'yesterday',
+                            onTap: () {
+                              final isSel = activeFilter.datePreset == 'yesterday';
+                              ref.read(timelineFilterProvider.notifier).setFilter(
+                                activeFilter.copyWith(
+                                  datePreset: isSel ? null : 'yesterday',
+                                  customDate: null,
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _buildFilterChip(
+                            context: context,
+                            label: 'Last 7 Days',
+                            isSelected: activeFilter.datePreset == '7days',
+                            onTap: () {
+                              final isSel = activeFilter.datePreset == '7days';
+                              ref.read(timelineFilterProvider.notifier).setFilter(
+                                activeFilter.copyWith(
+                                  datePreset: isSel ? null : '7days',
+                                  customDate: null,
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _buildFilterChip(
+                            context: context,
+                            label: 'Last 30 Days',
+                            isSelected: activeFilter.datePreset == '30days',
+                            onTap: () {
+                              final isSel = activeFilter.datePreset == '30days';
+                              ref.read(timelineFilterProvider.notifier).setFilter(
+                                activeFilter.copyWith(
+                                  datePreset: isSel ? null : '30days',
+                                  customDate: null,
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _buildFilterChip(
+                            context: context,
+                            label: activeFilter.customDate != null
+                                ? '${activeFilter.customDate!.day}/${activeFilter.customDate!.month}/${activeFilter.customDate!.year}'
+                                : 'Custom Date...',
+                            isSelected: activeFilter.customDate != null,
+                            onTap: () async {
+                              if (activeFilter.customDate != null) {
+                                ref.read(timelineFilterProvider.notifier).setFilter(
+                                  activeFilter.copyWith(customDate: null, datePreset: null),
+                                );
+                                return;
+                              }
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now(),
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime.now(),
+                              );
+                              if (picked != null) {
+                                ref.read(timelineFilterProvider.notifier).setFilter(
+                                  activeFilter.copyWith(customDate: picked, datePreset: null),
+                                );
+                              }
+                            },
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 16),

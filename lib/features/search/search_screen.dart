@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../../app/theme/app_colors.dart';
 import '../../providers/search_providers.dart';
 import '../../providers/notification_providers.dart';
@@ -10,7 +9,323 @@ import '../../core/widgets/notification_tile.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/section_header.dart';
 import '../../models/category_model.dart';
+import '../../models/notification_model.dart';
 import '../../core/widgets/banner_ad_widget.dart';
+
+/// Animated Search Input Box with subtle idle border and active primary glow
+class _SearchInputBox extends StatefulWidget {
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final String query;
+  final ValueChanged<String> onSubmitted;
+
+  const _SearchInputBox({
+    required this.controller,
+    required this.focusNode,
+    required this.query,
+    required this.onSubmitted,
+  });
+
+  @override
+  State<_SearchInputBox> createState() => _SearchInputBoxState();
+}
+
+class _SearchInputBoxState extends State<_SearchInputBox> {
+  @override
+  void initState() {
+    super.initState();
+    widget.focusNode.addListener(_onFocusChange);
+  }
+
+  @override
+  void dispose() {
+    widget.focusNode.removeListener(_onFocusChange);
+    super.dispose();
+  }
+
+  void _onFocusChange() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final isActive = widget.focusNode.hasFocus || widget.query.isNotEmpty;
+
+    final defaultBorderColor = isDark
+        ? Colors.white.withValues(alpha: 0.10)
+        : Colors.black.withValues(alpha: 0.08);
+
+    final activeBorderColor = theme.colorScheme.primary;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      height: 46,
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.surfaceDark
+            : theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isActive ? activeBorderColor : defaultBorderColor,
+          width: isActive ? 1.5 : 1.0,
+        ),
+        boxShadow: isActive
+            ? [
+                BoxShadow(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                )
+              ]
+            : [],
+      ),
+      child: TextField(
+        controller: widget.controller,
+        focusNode: widget.focusNode,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+        decoration: InputDecoration(
+          hintText: 'Search notifications...',
+          hintStyle: TextStyle(
+            fontSize: 13,
+            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+          ),
+          prefixIcon: Padding(
+            padding: const EdgeInsets.all(12),
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedSearch01,
+              color: isActive
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+              size: 18,
+            ),
+          ),
+          suffixIcon: widget.query.isNotEmpty
+              ? IconButton(
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedCancel01,
+                    size: 16,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  onPressed: () => widget.controller.clear(),
+                )
+              : null,
+          filled: true,
+          fillColor: Colors.transparent,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+        ),
+        onSubmitted: widget.onSubmitted,
+      ),
+    );
+  }
+}
+
+/// Pinned App Bar for Search Screen containing Title, Search Input Box,
+/// and Filter Chips, with a bottom fading gradient overlay.
+class SearchFadingAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final String query;
+  final SearchFilter activeFilter;
+  final ValueChanged<SearchFilter> onFilterChanged;
+  final ValueChanged<String> onSubmitted;
+  final bool isScrolled;
+
+  const SearchFadingAppBar({
+    super.key,
+    required this.controller,
+    required this.focusNode,
+    required this.query,
+    required this.activeFilter,
+    required this.onFilterChanged,
+    required this.onSubmitted,
+    this.isScrolled = false,
+  });
+
+  @override
+  Size get preferredSize => Size.fromHeight(188 + (isScrolled ? 20 : 0));
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final bgColor = isDark ? AppColors.backgroundDark : theme.scaffoldBackgroundColor;
+    final topInset = MediaQuery.paddingOf(context).top;
+    final headerHeight = topInset + 188.0;
+
+    return SizedBox(
+      height: headerHeight + 20,
+      child: Stack(
+        children: [
+          // Solid Background for Header Area
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: headerHeight,
+            child: Container(color: bgColor),
+          ),
+
+          // Fading Gradient Overlay sitting right below the filter chips
+          Positioned(
+            top: headerHeight,
+            left: 0,
+            right: 0,
+            height: 20,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              opacity: isScrolled ? 1.0 : 0.0,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      bgColor,
+                      bgColor.withValues(alpha: 0.0),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Header Contents (Title + Search Field + Filter Chips)
+          Positioned(
+            top: topInset,
+            left: 0,
+            right: 0,
+            height: 188,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title with generous 32dp space below
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
+                  child: Text(
+                    'Search',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                      fontSize: 22,
+                    ),
+                  ),
+                ),
+
+                // Search Bar Box with side padding
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _SearchInputBox(
+                    controller: controller,
+                    focusNode: focusNode,
+                    query: query,
+                    onSubmitted: onSubmitted,
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // Filter Chips Row ("Unread Only", "Payments", "Social", "OTP", etc.)
+                SizedBox(
+                  height: 36,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    children: [
+                      // Unread Only Chip
+                      ChoiceChip(
+                        label: const Text('Unread Only'),
+                        selected: activeFilter.onlyUnread == true,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                        onSelected: (selected) {
+                          onFilterChanged(SearchFilter(
+                            categoryId: activeFilter.categoryId,
+                            onlyUnread: selected ? true : null,
+                          ));
+                        },
+                        selectedColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+                        labelStyle: TextStyle(
+                          color: activeFilter.onlyUnread == true
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.onSurface,
+                          fontWeight: activeFilter.onlyUnread == true
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          fontSize: 11,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(
+                            color: activeFilter.onlyUnread == true
+                                ? theme.colorScheme.primary
+                                : (isDark ? AppColors.outlineDark : AppColors.outlineLight),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      VerticalDivider(
+                        color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
+                        width: 12,
+                        thickness: 1,
+                        indent: 8,
+                        endIndent: 8,
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Category Filter Chips
+                      ...CategoryModel.all.map((cat) {
+                        final isSelected = activeFilter.categoryId == cat.id;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: FilterChip(
+                            label: Text(cat.name),
+                            selected: isSelected,
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
+                            onSelected: (selected) {
+                              onFilterChanged(SearchFilter(
+                                categoryId: selected ? cat.id : null,
+                                onlyUnread: activeFilter.onlyUnread,
+                              ));
+                            },
+                            selectedColor: cat.color.withValues(alpha: 0.15),
+                            checkmarkColor: cat.color,
+                            labelStyle: TextStyle(
+                              color: isSelected ? cat.color : theme.colorScheme.onSurface,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              fontSize: 11,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: BorderSide(
+                                color: isSelected
+                                    ? cat.color
+                                    : (isDark ? AppColors.outlineDark : AppColors.outlineLight),
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -22,6 +337,7 @@ class SearchScreen extends ConsumerStatefulWidget {
 class _SearchScreenState extends ConsumerState<SearchScreen> {
   final _searchController = TextEditingController();
   final _focusNode = FocusNode();
+  bool _isScrolled = false;
 
   @override
   void initState() {
@@ -40,104 +356,47 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final query = ref.watch(searchQueryProvider);
+    final activeFilter = ref.watch(searchFilterProvider);
     final resultsAsync = ref.watch(searchResultsProvider);
     final recentSearches = ref.watch(recentSearchesProvider);
+    final topPadding = MediaQuery.of(context).padding.top + 188 + 4;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Search',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.5,
-          ),
-        ),
+      extendBodyBehindAppBar: true,
+      appBar: SearchFadingAppBar(
+        controller: _searchController,
+        focusNode: _focusNode,
+        query: query,
+        activeFilter: activeFilter,
+        isScrolled: _isScrolled,
+        onFilterChanged: (filter) {
+          ref.read(searchFilterProvider.notifier).setFilter(filter);
+        },
+        onSubmitted: (value) {
+          if (value.trim().isNotEmpty) {
+            ref.read(recentSearchesProvider.notifier).addSearch(value.trim());
+          }
+        },
       ),
-      body: Column(
-        children: [
-          // Search bar
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-            child: Container(
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
-                  width: 1.0,
-                ),
-              ),
-              child: TextField(
-                controller: _searchController,
-                focusNode: _focusNode,
-                autofocus: false,
-                decoration: InputDecoration(
-                  hintText: 'Search notifications...',
-                  prefixIcon: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedSearch01,
-                      color: theme.colorScheme.onSurfaceVariant,
-                      size: 18,
-                    ),
-                  ),
-                  suffixIcon: query.isNotEmpty
-                      ? IconButton(
-                          icon: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, size: 16, color: theme.colorScheme.onSurfaceVariant),
-                          onPressed: () {
-                            _searchController.clear();
-                          },
-                        )
-                      : null,
-                  filled: true,
-                  fillColor: Colors.transparent,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: theme.colorScheme.primary,
-                      width: 1.5,
-                    ),
-                  ),
-                ),
-                onSubmitted: (value) {
-                  if (value.trim().isNotEmpty) {
-                    ref
-                        .read(recentSearchesProvider.notifier)
-                        .addSearch(value.trim());
-                  }
-                },
-              ),
-            )
-                .animate()
-                .fadeIn(duration: 300.ms)
-                .slideY(begin: -0.05, end: 0, curve: Curves.easeOutQuad),
-          ),
-
-          // Search Filters
-          _buildSearchFilters(context),
-
-          // Content
-          Expanded(
-            child: (query.isEmpty &&
-                    ref.watch(searchFilterProvider).categoryId == null &&
-                    ref.watch(searchFilterProvider).onlyUnread == null)
-                ? _buildEmptyOrRecent(context, recentSearches)
-                : _buildPageResults(context, resultsAsync),
-          ),
-        ],
+      body: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          if (notification.metrics.axis == Axis.vertical) {
+            final isScrolled = notification.metrics.pixels > 3;
+            if (isScrolled != _isScrolled) {
+              setState(() {
+                _isScrolled = isScrolled;
+              });
+            }
+          }
+          return false;
+        },
+        child: Padding(
+          padding: EdgeInsets.only(top: topPadding),
+          child: (query.isEmpty && activeFilter.categoryId == null && activeFilter.onlyUnread == null)
+              ? _buildEmptyOrRecent(context, recentSearches)
+              : _buildPageResults(context, resultsAsync),
+        ),
       ),
     );
   }
@@ -256,132 +515,46 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   Widget _buildPageResults(
     BuildContext context,
-    AsyncValue resultsAsync,
+    AsyncValue<List<NotificationModel>> resultsAsync,
   ) {
-    return resultsAsync.when(
-      data: (results) {
-        final list = results as List;
-        if (list.isEmpty) {
-          return EmptyState(
-            icon: HugeIcons.strokeRoundedSearch01,
-            title: 'No results found',
-            subtitle: 'Try a different keyword or check your spelling.',
-          );
-        }
+    final list = resultsAsync.asData?.value ?? [];
 
-        return ListView.builder(
-          itemCount: list.length,
-          itemBuilder: (context, index) {
-            final notification = list[index];
-            return NotificationTile(
-              notification: notification,
-              enableDismiss: false,
-              onTap: () {
-                ref
-                    .read(notificationRepositoryProvider)
-                    .markAsRead(notification.id);
-                context.push('/notification/${notification.id}');
-              },
-            );
+    if (resultsAsync.isLoading && list.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (resultsAsync.hasError && list.isEmpty) {
+      return EmptyState(
+        icon: HugeIcons.strokeRoundedAlertCircle,
+        title: 'Search error',
+        subtitle: resultsAsync.error.toString(),
+      );
+    }
+
+    if (list.isEmpty) {
+      return EmptyState(
+        icon: HugeIcons.strokeRoundedSearch01,
+        title: 'No results found',
+        subtitle: 'Try a different keyword or check your spelling.',
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 24),
+      itemCount: list.length,
+      itemBuilder: (context, index) {
+        final notification = list[index];
+        return NotificationTile(
+          notification: notification,
+          enableDismiss: false,
+          onTap: () {
+            ref
+                .read(notificationRepositoryProvider)
+                .markAsRead(notification.id);
+            context.push('/notification/${notification.id}');
           },
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => EmptyState(
-        icon: HugeIcons.strokeRoundedAlertCircle,
-        title: 'Search error',
-        subtitle: error.toString(),
-      ),
-    );
-  }
-
-  Widget _buildSearchFilters(BuildContext context) {
-    final activeFilter = ref.watch(searchFilterProvider);
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Container(
-      height: 44,
-      padding: const EdgeInsets.only(bottom: 8),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        children: [
-          // Unread Only Filter Chip
-          ChoiceChip(
-            label: const Text('Unread Only'),
-            selected: activeFilter.onlyUnread == true,
-            onSelected: (selected) {
-              ref.read(searchFilterProvider.notifier).setFilter(SearchFilter(
-                    categoryId: activeFilter.categoryId,
-                    onlyUnread: selected ? true : null,
-                  ));
-            },
-            selectedColor: theme.colorScheme.primary.withValues(alpha: 0.15),
-            labelStyle: TextStyle(
-              color: activeFilter.onlyUnread == true
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.onSurface,
-              fontWeight: activeFilter.onlyUnread == true
-                  ? FontWeight.bold
-                  : FontWeight.normal,
-              fontSize: 11,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-              side: BorderSide(
-                color: activeFilter.onlyUnread == true
-                    ? theme.colorScheme.primary
-                    : (isDark ? AppColors.outlineDark : AppColors.outlineLight),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-
-          // Divider/Separator
-          VerticalDivider(
-            color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
-            width: 16,
-            thickness: 1,
-            indent: 6,
-            endIndent: 6,
-          ),
-          const SizedBox(width: 8),
-
-          // Category Chips
-          ...CategoryModel.all.map((cat) {
-            final isSelected = activeFilter.categoryId == cat.id;
-            return Padding(
-              padding: const EdgeInsets.only(right: 6),
-              child: FilterChip(
-                label: Text(cat.name),
-                selected: isSelected,
-                onSelected: (selected) {
-                  ref.read(searchFilterProvider.notifier).setFilter(SearchFilter(
-                        categoryId: selected ? cat.id : null,
-                        onlyUnread: activeFilter.onlyUnread,
-                      ));
-                },
-                selectedColor: cat.color.withValues(alpha: 0.15),
-                checkmarkColor: cat.color,
-                labelStyle: TextStyle(
-                  color: isSelected ? cat.color : theme.colorScheme.onSurface,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  fontSize: 11,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  side: BorderSide(
-                    color: isSelected
-                        ? cat.color
-                        : (isDark ? AppColors.outlineDark : AppColors.outlineLight),
-                  ),
-                ),
-              ),
-            );
-          }),
-        ],
-      ),
     );
   }
 }

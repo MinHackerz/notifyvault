@@ -10,6 +10,8 @@ import '../../core/widgets/section_header.dart';
 
 import '../../providers/settings_providers.dart';
 
+import '../../core/widgets/fading_app_bar.dart';
+
 class ReadOutLoudAppsScreen extends ConsumerWidget {
   const ReadOutLoudAppsScreen({super.key});
 
@@ -20,14 +22,12 @@ class ReadOutLoudAppsScreen extends ConsumerWidget {
     final appsAsync = ref.watch(appsWithPreferencesProvider);
     final playbackMode = ref.watch(ttsPlaybackModeProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Read Out Loud',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.5,
-          ),
+    return FadingScaffold(
+      title: Text(
+        'Read Out Loud',
+        style: theme.textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.5,
         ),
       ),
       body: appsAsync.when(
@@ -73,7 +73,12 @@ class ReadOutLoudAppsScreen extends ConsumerWidget {
           final otherApps = apps.where((a) => !a.readOutLoud).toList();
 
           return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+            padding: EdgeInsets.fromLTRB(
+              16,
+              MediaQuery.of(context).padding.top + kToolbarHeight + 8,
+              16,
+              32,
+            ),
             children: [
               _buildPlaybackModeSelector(context, ref, playbackMode),
               const SizedBox(height: 16),

@@ -10,44 +10,28 @@ import '../../providers/settings_providers.dart';
 import '../../providers/notification_providers.dart';
 import '../../core/widgets/section_header.dart';
 
-class StatisticsScreen extends ConsumerStatefulWidget {
+import '../../core/widgets/fading_app_bar.dart';
+
+class StatisticsScreen extends ConsumerWidget {
   const StatisticsScreen({super.key});
 
   @override
-  ConsumerState<StatisticsScreen> createState() => _StatisticsScreenState();
-}
-
-class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() {
-      if (mounted) {
-        ref.invalidate(notificationStreamProvider);
-        ref.invalidate(statsSummaryProvider);
-        ref.invalidate(topAppsStatsProvider);
-        ref.invalidate(top5AppsStatsProvider);
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final days = ref.watch(statsTimeRangeProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Statistics',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.5,
-          ),
+    return FadingScaffold(
+      title: Text(
+        'Statistics',
+        style: theme.textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.5,
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
+      ),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: Center(
             child: TextButton.icon(
               onPressed: () => _showPeriodPicker(context, ref, days),
               icon: HugeIcon(
@@ -65,14 +49,14 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
               ),
               style: TextButton.styleFrom(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(notificationStreamProvider);
@@ -80,9 +64,15 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
           ref.invalidate(topAppsStatsProvider);
           ref.invalidate(top5AppsStatsProvider);
         },
+        edgeOffset: MediaQuery.of(context).padding.top + kToolbarHeight + 8,
         color: AppColors.primary,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+          padding: EdgeInsets.fromLTRB(
+            16,
+            MediaQuery.of(context).padding.top + kToolbarHeight + 8,
+            16,
+            32,
+          ),
           children: [
             // Summary Cards
             const SectionHeader(index: '01', title: 'Summary'),

@@ -8,6 +8,8 @@ import '../../providers/app_management_providers.dart';
 import '../../database/app_database.dart';
 import '../../core/widgets/section_header.dart';
 
+import '../../core/widgets/fading_app_bar.dart';
+
 class AppManagementScreen extends ConsumerWidget {
   const AppManagementScreen({super.key});
 
@@ -17,14 +19,12 @@ class AppManagementScreen extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
     final appsAsync = ref.watch(appsWithPreferencesProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'App Management',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.5,
-          ),
+    return FadingScaffold(
+      title: Text(
+        'App Management',
+        style: theme.textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.5,
         ),
       ),
       body: appsAsync.when(
@@ -87,7 +87,12 @@ class AppManagementScreen extends ConsumerWidget {
               apps.where((a) => a.status == 'blocked').toList();
 
           return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+            padding: EdgeInsets.fromLTRB(
+              16,
+              MediaQuery.of(context).padding.top + kToolbarHeight + 8,
+              16,
+              32,
+            ),
             children: [
               // Legend
               _buildLegend(context),

@@ -10,6 +10,8 @@ import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/shimmer_loading.dart';
 import '../../core/widgets/section_header.dart';
 
+import '../../core/widgets/fading_app_bar.dart';
+
 /// Riverpod provider family to load notifications for a specific category
 final categoryNotificationsProvider = FutureProvider.family<List<NotificationModel>, String>((ref, categoryId) {
   final repo = ref.watch(notificationRepositoryProvider);
@@ -32,23 +34,24 @@ class CategoryScreen extends ConsumerWidget {
     final category = CategoryModel.findById(categoryId);
     final notificationsAsync = ref.watch(categoryNotificationsProvider(categoryId));
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, size: 22),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          category.name,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.5,
-          ),
+    return FadingScaffold(
+      leading: IconButton(
+        icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, size: 22),
+        onPressed: () => context.pop(),
+      ),
+      title: Text(
+        category.name,
+        style: theme.textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.5,
         ),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SizedBox(
+            height: MediaQuery.of(context).padding.top + kToolbarHeight + 4,
+          ),
           // ── Category Header Emblem ──
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/notification_model.dart';
 import '../app/config/app_config.dart';
@@ -32,17 +31,20 @@ class SearchFilterNotifier extends Notifier<SearchFilter> {
 final searchFilterProvider =
     NotifierProvider<SearchFilterNotifier, SearchFilter>(SearchFilterNotifier.new);
 
-/// Debounced search results.
+/// Instant search results from local database.
 final searchResultsProvider =
     FutureProvider<List<NotificationModel>>((ref) async {
+  // Re-evaluate when notifications change
+  ref.watch(notificationStreamProvider);
+
   final query = ref.watch(searchQueryProvider);
   final filter = ref.watch(searchFilterProvider);
+  final repo = ref.read(notificationRepositoryProvider);
 
   if (query.trim().isEmpty) {
     if (filter.categoryId == null && filter.onlyUnread == null) {
       return [];
     }
-    final repo = ref.read(notificationRepositoryProvider);
     List<NotificationModel> results;
     if (filter.categoryId != null) {
       results = await repo.getByCategory(filter.categoryId!, limit: 100);
@@ -55,34 +57,18 @@ final searchResultsProvider =
     return results;
   }
 
-  // Debounce: cancel if query changes within 300ms
-  final completer = Completer<List<NotificationModel>>();
-  final timer = Timer(AppConfig.searchDebounce, () async {
-    final repo = ref.read(notificationRepositoryProvider);
-    var results = await repo.searchNotifications(query.trim(), limit: 100);
+  var results = await repo.searchNotifications(query.trim(), limit: 100);
 
-    // Apply category filter
-    if (filter.categoryId != null) {
-      results = results.where((n) => n.category == filter.categoryId).toList();
-    }
-    // Apply read status filter
-    if (filter.onlyUnread != null) {
-      results = results.where((n) => filter.onlyUnread! ? !n.isRead : n.isRead).toList();
-    }
+  // Apply category filter
+  if (filter.categoryId != null) {
+    results = results.where((n) => n.category == filter.categoryId).toList();
+  }
+  // Apply read status filter
+  if (filter.onlyUnread != null) {
+    results = results.where((n) => filter.onlyUnread! ? !n.isRead : n.isRead).toList();
+  }
 
-    if (!completer.isCompleted) {
-      completer.complete(results);
-    }
-  });
-
-  ref.onDispose(() {
-    timer.cancel();
-    if (!completer.isCompleted) {
-      completer.complete([]);
-    }
-  });
-
-  return completer.future;
+  return results;
 });
 
 /// Recent searches stored in memory.

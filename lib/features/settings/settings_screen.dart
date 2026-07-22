@@ -14,6 +14,8 @@ import '../../providers/app_management_providers.dart';
 import '../../core/widgets/section_header.dart';
 import '../../core/helpers/ad_helper.dart';
 
+import '../../core/widgets/fading_app_bar.dart';
+
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -180,18 +182,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final retentionDays = ref.watch(retentionPeriodProvider);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Settings',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.5,
-          ),
+    return FadingScaffold(
+      title: Text(
+        'Settings',
+        style: theme.textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.5,
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          MediaQuery.of(context).padding.top + kToolbarHeight + 8,
+          16,
+          32,
+        ),
         children: [
           // ── Appearance ──
           const _SectionHeader(index: '01', title: 'Appearance'),

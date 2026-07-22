@@ -17,7 +17,7 @@ final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
 final notificationStreamProvider =
     StreamProvider<List<NotificationModel>>((ref) {
   final repo = ref.watch(notificationRepositoryProvider);
-  return repo.watchNotifications(limit: 200);
+  return repo.watchNotifications(limit: 1000);
 });
 
 /// Grouped notifications for the timeline view.
@@ -29,11 +29,38 @@ final groupedNotificationsProvider =
   );
 });
 
+const _sentinel = Object();
+
 class TimelineFilter {
   final String? categoryId;
   final bool? onlyUnread;
+  final String? datePreset; // 'today', 'yesterday', '7days', '30days', or null
+  final DateTime? customDate;
 
-  const TimelineFilter({this.categoryId, this.onlyUnread});
+  const TimelineFilter({
+    this.categoryId,
+    this.onlyUnread,
+    this.datePreset,
+    this.customDate,
+  });
+
+  bool get hasDateFilter => datePreset != null || customDate != null;
+
+  bool get hasActiveFilter => categoryId != null || onlyUnread != null || hasDateFilter;
+
+  TimelineFilter copyWith({
+    Object? categoryId = _sentinel,
+    Object? onlyUnread = _sentinel,
+    Object? datePreset = _sentinel,
+    Object? customDate = _sentinel,
+  }) {
+    return TimelineFilter(
+      categoryId: categoryId == _sentinel ? this.categoryId : (categoryId as String?),
+      onlyUnread: onlyUnread == _sentinel ? this.onlyUnread : (onlyUnread as bool?),
+      datePreset: datePreset == _sentinel ? this.datePreset : (datePreset as String?),
+      customDate: customDate == _sentinel ? this.customDate : (customDate as DateTime?),
+    );
+  }
 }
 
 class TimelineFilterNotifier extends Notifier<TimelineFilter> {
@@ -57,12 +84,50 @@ final filteredTimelineNotificationsProvider =
 
   return notificationsAsync.whenData((notifications) {
     var filtered = notifications;
+
     if (filter.categoryId != null) {
       filtered = filtered.where((n) => n.category == filter.categoryId).toList();
     }
     if (filter.onlyUnread != null) {
       filtered = filtered.where((n) => filter.onlyUnread! ? !n.isRead : n.isRead).toList();
     }
+
+    if (filter.customDate != null) {
+      final target = filter.customDate!.toLocal();
+      filtered = filtered.where((n) {
+        final t = n.timestamp.toLocal();
+        return t.year == target.year && t.month == target.month && t.day == target.day;
+      }).toList();
+    } else if (filter.datePreset != null) {
+      final now = DateTime.now().toLocal();
+      final todayStart = DateTime(now.year, now.month, now.day);
+
+      if (filter.datePreset == 'today') {
+        filtered = filtered.where((n) {
+          final t = n.timestamp.toLocal();
+          return t.year == todayStart.year && t.month == todayStart.month && t.day == todayStart.day;
+        }).toList();
+      } else if (filter.datePreset == 'yesterday') {
+        final yesterday = todayStart.subtract(const Duration(days: 1));
+        filtered = filtered.where((n) {
+          final t = n.timestamp.toLocal();
+          return t.year == yesterday.year && t.month == yesterday.month && t.day == yesterday.day;
+        }).toList();
+      } else if (filter.datePreset == '7days') {
+        final start7 = todayStart.subtract(const Duration(days: 7));
+        filtered = filtered.where((n) {
+          final t = n.timestamp.toLocal();
+          return t.isAfter(start7) || (t.year == start7.year && t.month == start7.month && t.day == start7.day);
+        }).toList();
+      } else if (filter.datePreset == '30days') {
+        final start30 = todayStart.subtract(const Duration(days: 30));
+        filtered = filtered.where((n) {
+          final t = n.timestamp.toLocal();
+          return t.isAfter(start30) || (t.year == start30.year && t.month == start30.month && t.day == start30.day);
+        }).toList();
+      }
+    }
+
     return DateHelper.groupNotifications(filtered);
   });
 });

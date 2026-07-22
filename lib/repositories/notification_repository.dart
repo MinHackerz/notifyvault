@@ -160,7 +160,7 @@ class NotificationRepository {
   }
 
   /// Watch notifications as a reactive stream.
-  Stream<List<NotificationModel>> watchNotifications({int limit = 100}) {
+  Stream<List<NotificationModel>> watchNotifications({int limit = 1000}) {
     return _db.notificationDao
         .watchNotifications(limit: limit)
         .map((list) => list.map(_toModel).toList());

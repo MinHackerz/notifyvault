@@ -14,6 +14,8 @@ import '../../core/helpers/launch_app_helper.dart';
 import '../../core/widgets/category_chip.dart';
 import '../../app/theme/app_colors.dart';
 
+import '../../core/widgets/fading_app_bar.dart';
+
 class NotificationDetailScreen extends ConsumerWidget {
   final String notificationId;
 
@@ -28,30 +30,13 @@ class NotificationDetailScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notification Details'),
+    return FadingScaffold(
+      title: const Text('Notification Details'),
         actions: [
           detailAsync.whenOrNull(
                 data: (notification) {
                   if (notification == null) return const SizedBox.shrink();
-                  return Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedStar,
-                          color: notification.isFavorite ? Colors.amber : theme.colorScheme.onSurface,
-                        ),
-                        onPressed: () {
-                          ref
-                              .read(notificationRepositoryProvider)
-                              .toggleFavorite(notificationId);
-                          ref.invalidate(
-                              notificationDetailProvider(notificationId));
-                        },
-                      ),
-                      PopupMenuButton<String>(
+                  return PopupMenuButton<String>(
                         onSelected: (value) =>
                             _handleAction(context, ref, value, notification),
                         shape: RoundedRectangleBorder(
@@ -96,14 +81,11 @@ class NotificationDetailScreen extends ConsumerWidget {
                             ),
                           ),
                         ],
-                      ),
-                    ],
-                  );
+                      );
                 },
               ) ??
               const SizedBox.shrink(),
         ],
-      ),
       body: detailAsync.when(
         data: (notification) {
           if (notification == null) {
@@ -123,7 +105,12 @@ class NotificationDetailScreen extends ConsumerWidget {
     final category = CategoryModel.findById(notification.category);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        MediaQuery.of(context).padding.top + kToolbarHeight + 12,
+        16,
+        24,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

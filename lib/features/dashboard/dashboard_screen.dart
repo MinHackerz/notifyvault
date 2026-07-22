@@ -15,6 +15,7 @@ import '../../core/widgets/category_chip.dart';
 import '../../core/widgets/notification_tile.dart';
 import '../../core/widgets/shimmer_loading.dart';
 import '../../core/widgets/section_header.dart';
+import '../../core/widgets/fading_app_bar.dart';
 
 final dashboardTabProvider = NotifierProvider<DashboardTabNotifier, String>(DashboardTabNotifier.new);
 
@@ -112,107 +113,92 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final isDark = theme.brightness == Brightness.dark;
     final permissionState = ref.watch(notificationPermissionProvider);
 
-    return Scaffold(
+    final topPadding = MediaQuery.of(context).padding.top + 72 + 4;
+
+    return FadingScaffold(
+      toolbarHeight: 72,
+      title: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppConfig.appName,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.8,
+              color: theme.colorScheme.onSurface,
+              fontSize: 20,
+            ),
+          ),
+          Text(
+            _getGreeting(),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        permissionState.when(
+          data: (granted) => Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Center(
+              child: GestureDetector(
+                onTap: granted
+                    ? () => _showAboutDialog(context)
+                    : () => context.push(AppRoutes.permission),
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: granted
+                          ? theme.colorScheme.primary.withValues(alpha: 0.2)
+                          : AppColors.warning.withValues(alpha: 0.3),
+                      width: 1.0,
+                    ),
+                  ),
+                  child: granted
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(7),
+                          child: Image.asset(
+                            isDark
+                                ? 'assets/icons/app_icon_dark.png'
+                                : 'assets/icons/app_icon.png',
+                            width: 36,
+                            height: 36,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : const Center(
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedAlertCircle,
+                            color: AppColors.warning,
+                            size: 16,
+                          ),
+                        ),
+                ),
+              ),
+            ),
+          ),
+          loading: () => const SizedBox.shrink(),
+          error: (_, _) => const SizedBox.shrink(),
+        ),
+      ],
       body: RefreshIndicator(
         onRefresh: _onRefresh,
+        edgeOffset: topPadding,
         color: theme.colorScheme.primary,
         backgroundColor: theme.colorScheme.surface,
         displacement: 60,
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            // Professional App Bar
-            SliverAppBar(
-              expandedHeight: 110,
-              floating: false,
-              pinned: true,
-              flexibleSpace: FlexibleSpaceBar(
-                titlePadding: const EdgeInsets.only(left: 16, bottom: 12),
-                title: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppConfig.appName,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.8,
-                        color: theme.colorScheme.onSurface,
-                        fontSize: 20,
-                      ),
-                    ),
-                    Text(
-                      _getGreeting(),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                background: Container(
-                  decoration: BoxDecoration(
-                    gradient: isDark
-                        ? LinearGradient(
-                            colors: [AppColors.secondaryDark, AppColors.backgroundDark],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          )
-                        : LinearGradient(
-                            colors: [theme.colorScheme.primary.withValues(alpha: 0.05), Colors.transparent],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          ),
-                  ),
-                ),
-              ),
-              actions: [
-                permissionState.when(
-                  data: (granted) => Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: GestureDetector(
-                      onTap: granted
-                          ? () => _showAboutDialog(context)
-                          : () => context.push(AppRoutes.permission),
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: granted
-                                ? theme.colorScheme.primary.withValues(alpha: 0.2)
-                                : AppColors.warning.withValues(alpha: 0.3),
-                            width: 1.0,
-                          ),
-                        ),
-                        child: granted
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(7),
-                                child: Image.asset(
-                                  isDark
-                                      ? 'assets/icons/app_icon_dark.png'
-                                      : 'assets/icons/app_icon.png',
-                                  width: 36,
-                                  height: 36,
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                            : const Center(
-                                child: HugeIcon(
-                                  icon: HugeIcons.strokeRoundedAlertCircle,
-                                  color: AppColors.warning,
-                                  size: 16,
-                                ),
-                              ),
-                      ),
-                    ),
-                  ),
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, _) => const SizedBox.shrink(),
-                ),
-              ],
+            SliverToBoxAdapter(
+              child: SizedBox(height: topPadding),
             ),
 
             // Permission banner if not granted

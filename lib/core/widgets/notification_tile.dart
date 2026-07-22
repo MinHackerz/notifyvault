@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../../models/notification_model.dart';
 import '../../models/category_model.dart';
 import '../extensions/date_extensions.dart';
@@ -104,76 +103,43 @@ class NotificationTile extends StatelessWidget {
                       // App name + time row
                       Row(
                         children: [
-                          // Priority badge
-                          if (isPriority) ...[
-                            Container(
+                          // App source indicator
+                          Flexible(
+                            child: Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 5, vertical: 2),
+                                  horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: Colors.amber.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(4),
+                                color: category.color.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: Colors.amber.withValues(alpha: 0.3),
+                                  color: category.color.withValues(alpha: 0.2),
                                   width: 1.0,
                                 ),
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.star_rounded,
-                                      size: 10, color: Colors.amber),
-                                  SizedBox(width: 2),
-                                  Text(
-                                    'PRIORITY',
-                                    style: TextStyle(
-                                      fontSize: 7,
-                                      fontWeight: FontWeight.w800,
-                                      color: Colors.amber,
-                                      letterSpacing: 0.5,
+                                  HugeIcon(
+                                    icon: _getAppIcon(notification.packageName),
+                                    size: 11,
+                                    color: category.color,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      notification.appName,
+                                      style: theme.textTheme.labelSmall?.copyWith(
+                                        color: category.color,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 10,
+                                        letterSpacing: 0.1,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],
                               ),
-                            )
-                                .animate(
-                                    onPlay: (c) => c.repeat(reverse: true))
-                                .shimmer(
-                                  duration: 2000.ms,
-                                  color: Colors.amber.withValues(alpha: 0.3),
-                                ),
-                            const SizedBox(width: 6),
-                          ],
-                          // App source indicator
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: category.color.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: category.color.withValues(alpha: 0.2),
-                                width: 1.0,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                HugeIcon(
-                                  icon: _getAppIcon(notification.packageName),
-                                  size: 11,
-                                  color: category.color,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  notification.appName,
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: category.color,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 10,
-                                    letterSpacing: 0.1,
-                                  ),
-                                ),
-                              ],
                             ),
                           ),
                           const Spacer(),

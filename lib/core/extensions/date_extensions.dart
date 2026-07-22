@@ -3,22 +3,25 @@ extension DateExtensions on DateTime {
   /// Check if this date is today.
   bool get isToday {
     final now = DateTime.now();
-    return year == now.year && month == now.month && day == now.day;
+    final local = toLocal();
+    return local.year == now.year && local.month == now.month && local.day == now.day;
   }
 
   /// Check if this date is yesterday.
   bool get isYesterday {
     final yesterday = DateTime.now().subtract(const Duration(days: 1));
-    return year == yesterday.year &&
-        month == yesterday.month &&
-        day == yesterday.day;
+    final local = toLocal();
+    return local.year == yesterday.year &&
+        local.month == yesterday.month &&
+        local.day == yesterday.day;
   }
 
   /// Check if this date is within this week (last 7 days).
   bool get isThisWeek {
     final now = DateTime.now();
     final weekAgo = now.subtract(const Duration(days: 7));
-    return isAfter(weekAgo) && !isToday && !isYesterday;
+    final local = toLocal();
+    return local.isAfter(weekAgo) && !isToday && !isYesterday;
   }
 
   /// Check if this date is within last week (7-14 days ago).
@@ -26,13 +29,15 @@ extension DateExtensions on DateTime {
     final now = DateTime.now();
     final twoWeeksAgo = now.subtract(const Duration(days: 14));
     final oneWeekAgo = now.subtract(const Duration(days: 7));
-    return isAfter(twoWeeksAgo) && isBefore(oneWeekAgo);
+    final local = toLocal();
+    return local.isAfter(twoWeeksAgo) && local.isBefore(oneWeekAgo);
   }
 
   /// Check if this date is within this month.
   bool get isThisMonth {
     final now = DateTime.now();
-    return year == now.year && month == now.month && !isThisWeek && !isToday && !isYesterday;
+    final local = toLocal();
+    return local.year == now.year && local.month == now.month && !isThisWeek && !isToday && !isYesterday;
   }
 
   /// Get the start of the day (midnight).
