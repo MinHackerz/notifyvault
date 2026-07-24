@@ -40,6 +40,71 @@ class FinancialParser {
   static const String _currencyRegexPattern =
       r'(?:₹|rs\.?|inr|\$|usd|€|eur|£|gbp|¥|jpy|cny|rmb|₩|krw|₱|php|₫|vnd|฿|thb|₺|try|r\$|brl|zł|pln|kč|czk|ft|huf|rp|idr|rm|myr|aed|sar|qar|kwd|bhd|omr|jod|egp|aud|cad|nzd|chf|sek|nok|dkk|zar|ngn|kes|ghs|uah|rub|ils|pkr|bdt|lkr|npr)';
 
+  /// Broad negative exclusion patterns covering 10 non-transactional domains.
+  static final List<RegExp> _negativePatterns = [
+    // 1. Corporate News, Stock Market & Financial Reports
+    RegExp(
+      r'\b(?:capital expenditure|capex|guidance|revenue|eps|quarter|q[1-4]|fy\d{2}|earnings|stock|stocks|shares|equity|nifty|sensex|nasdaq|dow|sp500|invests|investment|investor|valuation|lawsuit|securities|dividend|ipo|mutual fund|nav|asset|portfolio)\b',
+      caseSensitive: false,
+    ),
+    RegExp(r'\b(?:billion|trillion|crore|lakh)\b', caseSensitive: false),
+
+    // 2. Promotions, Offers, Discounts, Coupons & Rewards
+    RegExp(
+      r'\b(?:off|discount|discounts|coupon|coupons|voucher|vouchers|use code|promo|promocode|deal|deals|sale|flat|upto|up to|save|saving|savings|extra|bonus|cashback offer|points|reward|rewards|win|winner|chance|luck|spin|jackpot|free|gift|special offer|limited period|hurry|dont miss|unbeatable)\b',
+      caseSensitive: false,
+    ),
+    RegExp(r'\b(?:earn|earning|claim)\b', caseSensitive: false),
+
+    // 3. Product Catalogs & Price Advertisements
+    RegExp(
+      r'(?:from\s+(?:₹|\$|rs|inr)|@\s*(?:₹|\$|rs|inr)|starting\s+at|starting\s+from|\bmrp\b|\bworth\b|\bbuy\s+1\b|\bbuy\s+get\b|\bshop\s+now\b|\border\s+now\b|\bbrowse\b|\bcollection\b|\btrending\b|\bbestseller\b|\bpre-order\b|\blaunch\b)',
+      caseSensitive: false,
+    ),
+
+    // 4. Loans, Credit Cards, Pre-qualifications & Financial Ads
+    RegExp(
+      r'\b(?:pre-approved|pre approved|pre-qualified|pre qualified|loan|loans|apply now|eligible|eligibility|credit card offer|instant loan|personal loan|home loan|car loan|emi starts|interest rate|zero interest|no cost emi)\b',
+      caseSensitive: false,
+    ),
+
+    // 5. Telecom, Recharges & Subscriptions
+    RegExp(
+      r'\b(?:recharge|plan|pack|validity|data|unlimited|per day|gb/day|expired|expires|expiring|renew|renewal|top-up|talktime|subscriber)\b',
+      caseSensitive: false,
+    ),
+
+    // 6. Bills, Reminders, Requests & Pre-authorizations
+    RegExp(
+      r'\b(?:due|due date|due on|overdue|bill generated|reminder|bill due|will be charged|upcoming|requesting|requested|collect request|mandate|autopay scheduled|paylater)\b',
+      caseSensitive: false,
+    ),
+
+    // 7. OTP & Security Passcodes
+    RegExp(
+      r'\b(?:otp|verification|verify|code|secret|one time|one-time|password|passcode|do not share|dont share|auth|authentication|2fa|mfa|login|sign in)\b',
+      caseSensitive: false,
+    ),
+
+    // 8. Failed & Declined Transactions
+    RegExp(
+      r'\b(?:failed|declined|unsuccessful|cancelled|canceled|reversed|reversal|attempted|could not process|invalid|rejected|denied)\b',
+      caseSensitive: false,
+    ),
+
+    // 9. Gaming, Betting & Fantasy Apps
+    RegExp(
+      r'\b(?:dream11|mpl|rummy|poker|casino|bet|betting|fantasy|coins|tokens|diamonds|gems|level|score|tournament)\b',
+      caseSensitive: false,
+    ),
+
+    // 10. Logistics & General Status Updates
+    RegExp(
+      r'\b(?:out for delivery|dispatched|shipped|arriving today|arriving by|track your order)\b',
+      caseSensitive: false,
+    ),
+  ];
+
   /// Parse a notification and return a [FinancialTransaction] if valid financial transaction found.
   static FinancialTransaction? parse(NotificationModel notification) {
     final text = '${notification.title ?? ''} ${notification.displayText}'.trim();
@@ -47,33 +112,25 @@ class FinancialParser {
 
     final lowerText = text.toLowerCase();
 
-    // Check financial indicators
-    final hasFinancialKeywords = lowerText.contains('credited') ||
-        lowerText.contains('debited') ||
-        lowerText.contains('spent') ||
-        lowerText.contains('paid') ||
-        lowerText.contains('sent to') ||
-        lowerText.contains('received from') ||
-        lowerText.contains('withdrawn') ||
-        lowerText.contains('deposited') ||
-        lowerText.contains('transaction') ||
-        lowerText.contains('payment');
+    // Stage 1: Broad Negative Exclusions Check
+    for (final pattern in _negativePatterns) {
+      if (pattern.hasMatch(lowerText)) {
+        return null;
+      }
+    }
 
-    final hasCurrencySymbol = RegExp(_currencyRegexPattern, caseSensitive: false).hasMatch(lowerText);
-
-    if (!hasFinancialKeywords && !hasCurrencySymbol) return null;
-
-    // Extract amount and currency symbol
+    // Stage 2: Extract Amount & Currency
     final result = _extractAmountAndCurrency(text);
     if (result == null || result.amount <= 0) return null;
 
-    // Determine type: debit vs credit
+    // Stage 3: Strict Positive Structural Type Determination
     final type = _determineType(lowerText);
+    if (type == null) return null;
 
-    // Extract merchant or counterparty
+    // Stage 4: Extract Merchant / Counterparty
     final merchant = _extractMerchant(text, notification.appName);
 
-    // Extract account/bank suffix
+    // Stage 5: Extract Account/Bank Suffix
     final accountInfo = _extractAccountInfo(text);
 
     return FinancialTransaction(
@@ -289,24 +346,43 @@ class FinancialParser {
     return '₹';
   }
 
-  static TransactionType _determineType(String lowerText) {
-    final creditKeywords = [
-      'credited',
-      'received',
-      'added to',
-      'refund',
-      'cashback',
-      'deposit',
-      'got',
-      'received from',
+  static TransactionType? _determineType(String lowerText) {
+    // Explicit credit verbs/patterns
+    final creditPatterns = [
+      RegExp(r'\bcredited\b'),
+      RegExp(r'\breceived\b'),
+      RegExp(r'\badded\s+to\b'),
+      RegExp(r'\brefund\b'),
+      RegExp(r'\bdeposited\b'),
     ];
 
-    for (final kw in creditKeywords) {
-      if (lowerText.contains(kw)) {
+    for (final pattern in creditPatterns) {
+      if (pattern.hasMatch(lowerText)) {
         return TransactionType.credit;
       }
     }
-    return TransactionType.debit;
+
+    // Explicit debit verbs/patterns
+    final debitPatterns = [
+      RegExp(r'\bdebited\b'),
+      RegExp(r'\bspent\b'),
+      RegExp(r'\bpaid\b'),
+      RegExp(r'\bsent\b'),
+      RegExp(r'\bwithdrawn\b'),
+      RegExp(r'\bcharged\b'),
+      RegExp(r'\btransferred\b'),
+      RegExp(r'\bpayment\b'),
+      RegExp(r'\bpurchase\b'),
+    ];
+
+    for (final pattern in debitPatterns) {
+      if (pattern.hasMatch(lowerText)) {
+        return TransactionType.debit;
+      }
+    }
+
+    // If neither explicit credit nor debit pattern matched, it's NOT a valid transaction
+    return null;
   }
 
   static String _extractMerchant(String text, String appName) {

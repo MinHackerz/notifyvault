@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/helpers/financial_parser.dart';
 import 'notification_providers.dart';
 import 'statistics_providers.dart';
@@ -23,9 +24,58 @@ class FinancialSummary {
   });
 }
 
+class ExcludedFinancialTxNotifier extends Notifier<Set<String>> {
+  static const String _key = 'excluded_financial_tx_ids';
+
+  @override
+  Set<String> build() {
+    _loadFromPrefs();
+    return {};
+  }
+
+  Future<void> _loadFromPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final list = prefs.getStringList(_key) ?? [];
+      state = list.toSet();
+    } catch (_) {}
+  }
+
+  Future<void> excludeTransaction(String id) async {
+    final newState = {...state, id};
+    state = newState;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(_key, newState.toList());
+    } catch (_) {}
+  }
+
+  Future<void> includeTransaction(String id) async {
+    final newState = state.where((item) => item != id).toSet();
+    state = newState;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(_key, newState.toList());
+    } catch (_) {}
+  }
+
+  Future<void> clearExclusions() async {
+    state = {};
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_key);
+    } catch (_) {}
+  }
+}
+
+final excludedFinancialTxIdsProvider =
+    NotifierProvider<ExcludedFinancialTxNotifier, Set<String>>(
+        ExcludedFinancialTxNotifier.new);
+
 /// Provider for parsed financial transactions based on notifications.
 final financialTransactionsProvider = Provider<AsyncValue<List<FinancialTransaction>>>((ref) {
   final notificationsAsync = ref.watch(notificationStreamProvider);
+  final excludedIds = ref.watch(excludedFinancialTxIdsProvider);
   final days = ref.watch(statsTimeRangeProvider);
   final since = DateTime.now().subtract(Duration(days: days));
 
@@ -34,33 +84,11 @@ final financialTransactionsProvider = Provider<AsyncValue<List<FinancialTransact
 
     for (final notification in notifications) {
       if (notification.timestamp.isBefore(since)) continue;
+      if (excludedIds.contains(notification.id)) continue;
 
-      // Check category or content indicators
-      final isFinancialCategory = notification.category == 'banking' ||
-          notification.category == 'payments' ||
-          notification.category == 'shopping';
-
-      final content = '${notification.title ?? ''} ${notification.displayText}'.toLowerCase();
-
-      final hasCurrencyIndicator = content.contains('₹') ||
-          content.contains('rs') ||
-          content.contains('inr') ||
-          content.contains('\$') ||
-          content.contains('usd') ||
-          content.contains('€') ||
-          content.contains('eur') ||
-          content.contains('£') ||
-          content.contains('gbp') ||
-          content.contains('credited') ||
-          content.contains('debited') ||
-          content.contains('spent') ||
-          content.contains('paid');
-
-      if (isFinancialCategory || hasCurrencyIndicator) {
-        final tx = FinancialParser.parse(notification);
-        if (tx != null) {
-          transactions.add(tx);
-        }
+      final tx = FinancialParser.parse(notification);
+      if (tx != null) {
+        transactions.add(tx);
       }
     }
 

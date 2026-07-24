@@ -16,6 +16,7 @@ class FinancialSummaryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final summaryAsync = ref.watch(financialSummaryProvider);
+    final excludedIds = ref.watch(excludedFinancialTxIdsProvider);
     final days = ref.watch(statsTimeRangeProvider);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -28,6 +29,24 @@ class FinancialSummaryScreen extends ConsumerWidget {
         ),
       ),
       actions: [
+        if (excludedIds.isNotEmpty)
+          IconButton(
+            tooltip: 'Restore ${excludedIds.length} hidden transaction(s)',
+            icon: const HugeIcon(
+              icon: HugeIcons.strokeRoundedRefresh,
+              color: AppColors.error,
+              size: 20,
+            ),
+            onPressed: () {
+              ref.read(excludedFinancialTxIdsProvider.notifier).clearExclusions();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('All hidden transactions restored.'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
         Padding(
           padding: const EdgeInsets.only(right: 16),
           child: Center(
@@ -52,7 +71,7 @@ class FinancialSummaryScreen extends ConsumerWidget {
       body: summaryAsync.when(
         data: (summary) {
           if (summary.transactionCount == 0) {
-            return _buildEmptyState(context, theme);
+            return _buildEmptyState(context, theme, ref, excludedIds.isNotEmpty);
           }
 
           final currencyFormatter = NumberFormat.currency(symbol: summary.currencySymbol, decimalDigits: 0);
@@ -178,108 +197,140 @@ class FinancialSummaryScreen extends ConsumerWidget {
                     ),
                   ),
                   Text(
-                    '100% Offline & Private',
+                    'Swipe or tap bin to remove',
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: AppColors.success,
+                      color: theme.colorScheme.onSurfaceVariant,
                       fontSize: 10,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
 
-              // Transaction List
+              // Transaction List with Swipe-to-Dismiss and Remove action
               ...summary.transactions.map((tx) {
                 final isDebit = tx.type == TransactionType.debit;
                 final color = isDebit ? AppColors.error : AppColors.success;
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: Material(
-                    color: theme.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(14),
-                    child: InkWell(
-                      onTap: () {
-                        context.push('/notification/${tx.id}');
-                      },
+                  child: Dismissible(
+                    key: Key('tx_${tx.id}'),
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.only(right: 20),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const HugeIcon(
+                        icon: HugeIcons.strokeRoundedDelete02,
+                        color: AppColors.error,
+                        size: 22,
+                      ),
+                    ),
+                    onDismissed: (_) {
+                      _removeTransaction(context, ref, tx);
+                    },
+                    child: Material(
+                      color: theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(14),
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
-                            width: 1.0,
+                      child: InkWell(
+                        onTap: () {
+                          context.push('/notification/${tx.id}');
+                        },
+                        borderRadius: BorderRadius.circular(14),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
+                              width: 1.0,
+                            ),
                           ),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: color.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Center(
-                                child: HugeIcon(
-                                  icon: isDebit
-                                      ? HugeIcons.strokeRoundedMoneySendSquare
-                                      : HugeIcons.strokeRoundedMoneyReceiveSquare,
-                                  color: color,
-                                  size: 20,
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: color.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Center(
+                                  child: HugeIcon(
+                                    icon: isDebit
+                                        ? HugeIcons.strokeRoundedMoneySendSquare
+                                        : HugeIcons.strokeRoundedMoneyReceiveSquare,
+                                    color: color,
+                                    size: 20,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      tx.merchant,
+                                      style: theme.textTheme.bodyMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${tx.appName}${tx.accountInfo != null ? ' • ${tx.accountInfo}' : ''}',
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: theme.colorScheme.onSurfaceVariant,
+                                        fontSize: 11,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Text(
-                                    tx.merchant,
-                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                    '${isDebit ? '-' : '+'}${NumberFormat.currency(symbol: tx.currencySymbol, decimalDigits: 0).format(tx.amount)}',
+                                    style: TextStyle(
+                                      color: color,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    '${tx.appName}${tx.accountInfo != null ? ' • ${tx.accountInfo}' : ''}',
+                                    _formatTimestamp(tx.timestamp),
                                     style: theme.textTheme.bodySmall?.copyWith(
                                       color: theme.colorScheme.onSurfaceVariant,
-                                      fontSize: 11,
+                                      fontSize: 10,
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  '${isDebit ? '-' : '+'}${NumberFormat.currency(symbol: tx.currencySymbol, decimalDigits: 0).format(tx.amount)}',
-                                  style: TextStyle(
-                                    color: color,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
+                              const SizedBox(width: 4),
+                              IconButton(
+                                icon: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedDelete02,
+                                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                                  size: 18,
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  _formatTimestamp(tx.timestamp),
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                    fontSize: 10,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                                tooltip: 'Remove from Summary',
+                                onPressed: () {
+                                  _removeTransaction(context, ref, tx);
+                                },
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -291,6 +342,23 @@ class FinancialSummaryScreen extends ConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text('Error loading financial data: $err')),
+      ),
+    );
+  }
+
+  void _removeTransaction(BuildContext context, WidgetRef ref, FinancialTransaction tx) {
+    ref.read(excludedFinancialTxIdsProvider.notifier).excludeTransaction(tx.id);
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Removed ${tx.merchant} transaction (${tx.currencySymbol}${tx.amount}) from summary.'),
+        action: SnackBarAction(
+          label: 'UNDO',
+          onPressed: () {
+            ref.read(excludedFinancialTxIdsProvider.notifier).includeTransaction(tx.id);
+          },
+        ),
+        duration: const Duration(seconds: 4),
       ),
     );
   }
@@ -346,7 +414,7 @@ class FinancialSummaryScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, ThemeData theme) {
+  Widget _buildEmptyState(BuildContext context, ThemeData theme, WidgetRef ref, bool hasExclusions) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -384,6 +452,26 @@ class FinancialSummaryScreen extends ConsumerWidget {
                 height: 1.4,
               ),
             ),
+            if (hasExclusions) ...[
+              const SizedBox(height: 20),
+              OutlinedButton.icon(
+                onPressed: () {
+                  ref.read(excludedFinancialTxIdsProvider.notifier).clearExclusions();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('All hidden transactions restored.'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedRefresh,
+                  color: AppColors.primary,
+                  size: 18,
+                ),
+                label: const Text('Restore Hidden Transactions'),
+              ),
+            ],
           ],
         ),
       ),
