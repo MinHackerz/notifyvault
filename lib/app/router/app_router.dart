@@ -19,6 +19,7 @@ import '../../features/settings/app_management_screen.dart';
 import '../../features/settings/read_out_loud_apps_screen.dart';
 import '../../features/categories/category_screen.dart';
 import '../../features/statistics/statistics_screen.dart';
+import '../../features/financial/financial_summary_screen.dart';
 import '../../core/widgets/banner_ad_widget.dart';
 import '../../providers/notification_providers.dart';
 import '../../providers/statistics_providers.dart';
@@ -38,6 +39,7 @@ class AppRoutes {
   static const appManagement = '/app-management';
   static const readOutLoudApps = '/read-out-loud-apps';
   static const statistics = '/statistics';
+  static const financialSummary = '/financial-summary';
 }
 
 /// GoRouter provider.
@@ -188,6 +190,27 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) {
           return CustomTransitionPage(
             child: const ReadOutLoudAppsScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.05),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeOutCubic,
+                )),
+                child: FadeTransition(opacity: animation, child: child),
+              );
+            },
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.financialSummary,
+        pageBuilder: (context, state) {
+          return CustomTransitionPage(
+            child: const FinancialSummaryScreen(),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
               return SlideTransition(

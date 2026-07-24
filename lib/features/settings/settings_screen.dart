@@ -120,7 +120,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         icon: HugeIcons.strokeRoundedSettings01,
         title: 'App Management',
         description: 'Set priority apps, block spam, and manage notification categories.',
-        align: ContentAlign.bottom,
+        align: ContentAlign.top,
         step: 4,
         totalSteps: totalSteps,
       ),

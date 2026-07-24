@@ -91,7 +91,7 @@ class NotificationDetailScreen extends ConsumerWidget {
           if (notification == null) {
             return const Center(child: Text('Notification not found'));
           }
-          return _buildContent(context, notification);
+          return _buildContent(context, ref, notification);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(child: Text('Error: $error')),
@@ -99,7 +99,7 @@ class NotificationDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, NotificationModel notification) {
+  Widget _buildContent(BuildContext context, WidgetRef ref, NotificationModel notification) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final category = CategoryModel.findById(notification.category);
@@ -227,24 +227,37 @@ class NotificationDetailScreen extends ConsumerWidget {
                     height: 1,
                   ),
                 ),
-                Row(
-                  children: [
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedFolder01,
-                      size: 16,
-                      color: theme.colorScheme.onSurfaceVariant,
+                InkWell(
+                  onTap: () => _showCategorySelectorSheet(context, ref, notification),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedFolder01,
+                          size: 16,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Category',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedEdit02,
+                          size: 12,
+                          color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                        ),
+                        const Spacer(),
+                        CategoryChip(category: category),
+                      ],
                     ),
-                    const SizedBox(width: 10),
-                    Text(
-                      'Category',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const Spacer(),
-                    CategoryChip(category: category),
-                  ],
+                  ),
                 ),
                 if (notification.senderName != null) ...[
                   Padding(
@@ -598,6 +611,133 @@ class NotificationDetailScreen extends ConsumerWidget {
           color: category.color,
         ),
       ),
+    );
+  }
+
+  void _showCategorySelectorSheet(
+      BuildContext context, WidgetRef ref, NotificationModel notification) {
+    final theme = Theme.of(context);
+    final categories = CategoryModel.all;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Change Category for ${notification.appName}',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'All past and future notifications from ${notification.appName} will be categorized as your selection.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.5,
+                  ),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: categories.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 4),
+                    itemBuilder: (context, index) {
+                      final cat = categories[index];
+                      final isSelected = notification.category == cat.id;
+
+                      return ListTile(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        tileColor: isSelected
+                            ? theme.colorScheme.primary.withValues(alpha: 0.1)
+                            : null,
+                        leading: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: cat.color.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Center(
+                            child: HugeIcon(
+                              icon: cat.icon,
+                              color: cat.color,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                        title: Text(
+                          cat.name,
+                          style: TextStyle(
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                        trailing: isSelected
+                            ? HugeIcon(
+                                icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                                color: theme.colorScheme.primary,
+                                size: 20,
+                              )
+                            : null,
+                        onTap: () async {
+                          Navigator.pop(context);
+                          await ref
+                              .read(notificationRepositoryProvider)
+                              .updateAppCategoryOverride(
+                                packageName: notification.packageName,
+                                appName: notification.appName,
+                                category: cat.id,
+                              );
+                          ref.invalidate(notificationDetailProvider(notification.id));
+                          ref.invalidate(notificationStreamProvider);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Set category to "${cat.name}" for ${notification.appName}',
+                                ),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

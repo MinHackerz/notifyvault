@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
+import '../core/helpers/deleted_tracker.dart';
 import '../database/app_database.dart';
 import '../providers/settings_providers.dart';
 import 'notification_providers.dart';
@@ -19,24 +20,41 @@ class StatsTimeRangeNotifier extends Notifier<int> {
   void setDays(int days) => state = days;
 }
 
-/// Stats summary: total received in range.
-final statsSummaryProvider =
-    FutureProvider<StatsSummary>((ref) async {
+/// Stats summary model.
+class StatsSummary {
+  final int totalReceived;
+  final int totalRead;
+  final int totalCleared; // Notifications deleted/cleared within time period
+  final int days;
+
+  const StatsSummary({
+    this.totalReceived = 0,
+    this.totalRead = 0,
+    this.totalCleared = 0,
+    this.days = 7,
+  });
+
+  // Backward compatibility getters
+  int get totalSaved => totalReceived;
+  int get totalUnread => totalReceived - totalRead;
+  int get totalDeleted => totalCleared;
+}
+
+/// Stats summary: total received, read, and cleared in range.
+final statsSummaryProvider = FutureProvider<StatsSummary>((ref) async {
   ref.watch(notificationStreamProvider);
   final days = ref.watch(statsTimeRangeProvider);
   final since = DateTime.now().subtract(Duration(days: days));
   final db = AppDatabase.instance;
 
-  final totalReceived =
-      await db.notificationDao.getCountSince(since);
-  final totalDismissed =
-      await db.notificationDao.getDismissedCountSince(since);
-  final totalSaved = totalReceived - totalDismissed;
+  final totalReceived = await db.notificationDao.getCountSince(since);
+  final totalRead = await db.notificationDao.getReadCountSince(since);
+  final totalCleared = await DeletedTracker.getDeletedCountSince(since);
 
   return StatsSummary(
     totalReceived: totalReceived,
-    totalSaved: totalSaved > 0 ? totalSaved : 0,
-    totalDeleted: totalDismissed,
+    totalRead: totalRead,
+    totalCleared: totalCleared,
     days: days,
   );
 });
@@ -96,20 +114,7 @@ String _extractAppName(String packageName) {
   return packageName;
 }
 
-/// Summary model for statistics.
-class StatsSummary {
-  final int totalReceived;
-  final int totalSaved;
-  final int totalDeleted;
-  final int days;
 
-  const StatsSummary({
-    required this.totalReceived,
-    required this.totalSaved,
-    required this.totalDeleted,
-    required this.days,
-  });
-}
 
 /// Single app stat entry.
 class AppStatEntry {

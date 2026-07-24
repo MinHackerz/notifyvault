@@ -6,6 +6,8 @@ import 'package:drift/drift.dart';
 @TableIndex(name: 'idx_notifications_category', columns: {#category})
 @TableIndex(name: 'idx_notifications_is_read', columns: {#isRead})
 @TableIndex(name: 'idx_notifications_is_favorite', columns: {#isFavorite})
+@TableIndex(name: 'idx_notifications_ts_dismissed', columns: {#timestamp, #isDismissed})
+@TableIndex(name: 'idx_notifications_ts_category', columns: {#timestamp, #category})
 class Notifications extends Table {
   // Primary key
   TextColumn get id => text()();

@@ -126,8 +126,9 @@ class NotificationDao extends DatabaseAccessor<AppDatabase>
     final query = selectOnly(notifications)
       ..addColumns([count])
       ..where(notifications.timestamp.isBiggerOrEqualValue(startOfDay));
-    final result = await query.getSingle();
-    return result.read(count) ?? 0;
+    final result = await query.getSingleOrNull();
+    if (result == null) return 0;
+    return result.read<int>(count) ?? 0;
   }
 
   /// Get unread notification count.
@@ -136,16 +137,18 @@ class NotificationDao extends DatabaseAccessor<AppDatabase>
     final query = selectOnly(notifications)
       ..addColumns([count])
       ..where(notifications.isRead.equals(false));
-    final result = await query.getSingle();
-    return result.read(count) ?? 0;
+    final result = await query.getSingleOrNull();
+    if (result == null) return 0;
+    return result.read<int>(count) ?? 0;
   }
 
   /// Get total notification count.
   Future<int> getTotalCount() async {
     final count = notifications.id.count();
     final query = selectOnly(notifications)..addColumns([count]);
-    final result = await query.getSingle();
-    return result.read(count) ?? 0;
+    final result = await query.getSingleOrNull();
+    if (result == null) return 0;
+    return result.read<int>(count) ?? 0;
   }
 
   /// Toggle favorite status.
@@ -220,7 +223,7 @@ class NotificationDao extends DatabaseAccessor<AppDatabase>
     return Map.fromEntries(
       results.map((row) => MapEntry(
             row.read(notifications.category) ?? 'other',
-            row.read(count) ?? 0,
+            row.read<int>(count) ?? 0,
           )),
     );
   }
@@ -233,8 +236,9 @@ class NotificationDao extends DatabaseAccessor<AppDatabase>
     final query = selectOnly(notifications)
       ..addColumns([count])
       ..where(notifications.timestamp.isBiggerOrEqualValue(startOfDay));
-    final result = await query.getSingle();
-    return result.read(count) ?? 0;
+    final result = await query.getSingleOrNull();
+    if (result == null) return 0;
+    return result.read<int>(count) ?? 0;
   }
 
   /// Get total notification count since a given date.
@@ -243,8 +247,9 @@ class NotificationDao extends DatabaseAccessor<AppDatabase>
     final query = selectOnly(notifications)
       ..addColumns([count])
       ..where(notifications.timestamp.isBiggerOrEqualValue(since));
-    final result = await query.getSingle();
-    return result.read(count) ?? 0;
+    final result = await query.getSingleOrNull();
+    if (result == null) return 0;
+    return result.read<int>(count) ?? 0;
   }
 
   /// Get dismissed notification count since a given date.
@@ -254,8 +259,33 @@ class NotificationDao extends DatabaseAccessor<AppDatabase>
       ..addColumns([count])
       ..where(notifications.timestamp.isBiggerOrEqualValue(since) &
           notifications.isDismissed.equals(true));
-    final result = await query.getSingle();
-    return result.read(count) ?? 0;
+    final result = await query.getSingleOrNull();
+    if (result == null) return 0;
+    return result.read<int>(count) ?? 0;
+  }
+
+  /// Get unread notification count since a given date.
+  Future<int> getUnreadCountSince(DateTime since) async {
+    final count = notifications.id.count();
+    final query = selectOnly(notifications)
+      ..addColumns([count])
+      ..where(notifications.timestamp.isBiggerOrEqualValue(since) &
+          notifications.isRead.equals(false));
+    final result = await query.getSingleOrNull();
+    if (result == null) return 0;
+    return result.read<int>(count) ?? 0;
+  }
+
+  /// Get read notification count since a given date.
+  Future<int> getReadCountSince(DateTime since) async {
+    final count = notifications.id.count();
+    final query = selectOnly(notifications)
+      ..addColumns([count])
+      ..where(notifications.timestamp.isBiggerOrEqualValue(since) &
+          notifications.isRead.equals(true));
+    final result = await query.getSingleOrNull();
+    if (result == null) return 0;
+    return result.read<int>(count) ?? 0;
   }
 
   /// Get notification counts grouped by app (package name) since a given date.
@@ -269,8 +299,24 @@ class NotificationDao extends DatabaseAccessor<AppDatabase>
     return Map.fromEntries(
       results.map((row) => MapEntry(
             row.read(notifications.packageName) ?? 'unknown',
-            row.read(count) ?? 0,
+            row.read<int>(count) ?? 0,
           )),
+    );
+  }
+
+  /// Update the category of a single notification.
+  Future<void> updateCategory(String id, String category) {
+    return (update(notifications)..where((t) => t.id.equals(id))).write(
+      NotificationsCompanion(category: Value(category)),
+    );
+  }
+
+  /// Bulk-update category for ALL notifications from a given package.
+  Future<int> updateCategoryByPackage(String packageName, String category) {
+    return (update(notifications)
+          ..where((t) => t.packageName.equals(packageName)))
+        .write(
+      NotificationsCompanion(category: Value(category)),
     );
   }
 }

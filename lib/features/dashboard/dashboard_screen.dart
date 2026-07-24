@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:intl/intl.dart';
 import '../../app/theme/app_colors.dart';
 import '../../app/config/app_config.dart';
 import '../../app/router/app_router.dart';
 import '../../providers/notification_providers.dart';
 import '../../providers/permission_providers.dart';
 import '../../providers/app_management_providers.dart';
+import '../../providers/financial_providers.dart';
 import '../../models/category_model.dart';
 import '../../models/notification_model.dart';
 import '../../core/widgets/category_chip.dart';
@@ -493,7 +495,109 @@ class _StatsGrid extends ConsumerWidget {
             ),
           ],
         ),
+        const SizedBox(height: 10),
+        const _DashboardFinancialCard(),
       ],
+    );
+  }
+}
+
+class _DashboardFinancialCard extends ConsumerWidget {
+  const _DashboardFinancialCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final summaryAsync = ref.watch(financialSummaryProvider);
+    final isDark = theme.brightness == Brightness.dark;
+    final currencyFormatter = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
+
+    return summaryAsync.when(
+      data: (summary) {
+        if (summary.transactionCount == 0) return const SizedBox.shrink();
+
+        return Material(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            onTap: () => context.push(AppRoutes.financialSummary),
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
+                  width: 1.0,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppColors.categoryBanking.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Center(
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedBank,
+                        color: AppColors.categoryBanking,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Spent Recently',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontSize: 11,
+                          ),
+                        ),
+                        Text(
+                          currencyFormatter.format(summary.totalSpent),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 15,
+                            color: AppColors.error,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Tracker',
+                        style: TextStyle(
+                          color: theme.colorScheme.primary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedArrowRight01,
+                        size: 14,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }
@@ -520,52 +624,36 @@ class _StatCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF131A2D) : theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: color.withValues(alpha: isDark ? 0.25 : 0.15),
+          color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
           width: 1.0,
         ),
-        boxShadow: isDark
-            ? []
-            : [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.03),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                )
-              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Icon in clean box
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: HugeIcon(icon: icon, size: 18, color: color),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              HugeIcon(icon: icon, size: 16, color: color),
+            ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
             value,
-            style: theme.textTheme.displayLarge?.copyWith(
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            title,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: isDark ? Colors.white : theme.colorScheme.onSurface,
             ),
           ),
         ],

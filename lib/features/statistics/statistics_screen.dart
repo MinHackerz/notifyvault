@@ -4,12 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../../app/theme/app_colors.dart';
+import '../../app/router/app_router.dart';
 import '../../providers/statistics_providers.dart';
 import '../../providers/settings_providers.dart';
 import '../../providers/notification_providers.dart';
+import '../../providers/distraction_providers.dart';
+import '../../providers/financial_providers.dart';
 import '../../core/widgets/section_header.dart';
-
 import '../../core/widgets/fading_app_bar.dart';
 
 class StatisticsScreen extends ConsumerWidget {
@@ -81,15 +85,29 @@ class StatisticsScreen extends ConsumerWidget {
 
             const SizedBox(height: 20),
 
+            // Financial Tracker Entry Card
+            const SectionHeader(index: '02', title: 'Financial Insights'),
+            const SizedBox(height: 8),
+            const _FinancialTrackerCard(),
+
+            const SizedBox(height: 20),
+
+            // Distraction & Hourly Heatmap
+            const SectionHeader(index: '03', title: 'Focus & Distraction Score'),
+            const SizedBox(height: 8),
+            const _DistractionAnalyticsSection(),
+
+            const SizedBox(height: 20),
+
             // Top 5 Apps Chart
-            const SectionHeader(index: '02', title: 'Top 5 Apps'),
+            const SectionHeader(index: '04', title: 'Top 5 Apps'),
             const SizedBox(height: 8),
             _TopAppsChart(),
 
             const SizedBox(height: 20),
 
             // All Apps Table
-            const SectionHeader(index: '03', title: 'All Apps'),
+            const SectionHeader(index: '05', title: 'All Apps'),
             const SizedBox(height: 8),
             _AllAppsTable(),
           ],
@@ -194,9 +212,9 @@ class _SummaryCards extends ConsumerWidget {
             const SizedBox(width: 10),
             Expanded(
               child: _MiniStatCard(
-                icon: HugeIcons.strokeRoundedArchive01,
-                title: 'Saved',
-                value: '${summary.totalSaved}',
+                icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                title: 'Read',
+                value: '${summary.totalRead}',
                 color: AppColors.success,
               )
                   .animate()
@@ -207,8 +225,8 @@ class _SummaryCards extends ConsumerWidget {
             Expanded(
               child: _MiniStatCard(
                 icon: HugeIcons.strokeRoundedDelete02,
-                title: 'Deleted',
-                value: '${summary.totalDeleted}',
+                title: 'Cleared',
+                value: '${summary.totalCleared}',
                 color: AppColors.error,
               )
                   .animate()
@@ -251,30 +269,34 @@ class _MiniStatCard extends StatelessWidget {
         color: isDark ? const Color(0xFF131A2D) : theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: color.withValues(alpha: isDark ? 0.25 : 0.15),
+          color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
           width: 1.0,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          HugeIcon(icon: icon, size: 18, color: color),
-          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              HugeIcon(icon: icon, size: 15, color: color),
+            ],
+          ),
+          const SizedBox(height: 8),
           Text(
             value,
             style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: color,
               fontSize: 22,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            title,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
+              color: isDark ? Colors.white : theme.colorScheme.onSurface,
             ),
           ),
         ],
@@ -673,3 +695,448 @@ class _AllAppsTable extends ConsumerWidget {
     );
   }
 }
+
+class _FinancialTrackerCard extends ConsumerWidget {
+  const _FinancialTrackerCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final summaryAsync = ref.watch(financialSummaryProvider);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final currencyFormatter = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
+
+    return summaryAsync.when(
+      data: (summary) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
+              width: 1.0,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppColors.categoryBanking.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Center(
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedBank,
+                        color: AppColors.categoryBanking,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'On-Device Financial Summary',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          '${summary.transactionCount} transactions detected',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      context.push(AppRoutes.financialSummary);
+                    },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'View All',
+                          style: TextStyle(
+                            color: theme.colorScheme.primary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedArrowRight01,
+                          size: 14,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Total Spent',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontSize: 11,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          currencyFormatter.format(summary.totalSpent),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                            color: AppColors.error,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 28,
+                    color: theme.colorScheme.outline.withValues(alpha: 0.1),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Total Received',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontSize: 11,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          currencyFormatter.format(summary.totalReceived),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                            color: AppColors.success,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+}
+
+class _DistractionAnalyticsSection extends ConsumerWidget {
+  const _DistractionAnalyticsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final metricsAsync = ref.watch(distractionAnalyticsProvider);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return metricsAsync.when(
+      data: (metrics) {
+        final peakHourStr = _formatHour(metrics.peakHour);
+
+        return Column(
+          children: [
+            // Distraction Score Card
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
+                  width: 1.0,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: metrics.statusColor.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Center(
+                              child: HugeIcon(
+                                icon: HugeIcons.strokeRoundedAlertCircle,
+                                color: metrics.statusColor,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Distraction Score',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Peak noise at $peakHourStr',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: metrics.statusColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              '${metrics.score}',
+                              style: TextStyle(
+                                color: metrics.statusColor,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              metrics.statusLabel,
+                              style: TextStyle(
+                                color: metrics.statusColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: metrics.score / 100.0,
+                      minHeight: 8,
+                      backgroundColor: theme.colorScheme.outline.withValues(alpha: 0.1),
+                      color: metrics.statusColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Minimalist Daily Activity Timeline
+            _buildDailyActivityTimeline(theme, metrics.hourlyCounts, isDark),
+          ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildDailyActivityTimeline(ThemeData theme, List<int> hourlyCounts, bool isDark) {
+    // Calculate peak hour
+    int peakH = 0;
+    int maxC = 0;
+    for (int h = 0; h < 24; h++) {
+      if (hourlyCounts[h] > maxC) {
+        maxC = hourlyCounts[h];
+        peakH = h;
+      }
+    }
+    final peakStr = maxC > 0 ? '${_formatHour(peakH)} – ${_formatHour((peakH + 1) % 24)}' : null;
+
+    final spots = List.generate(24, (h) => FlSpot(h.toDouble(), hourlyCounts[h].toDouble()));
+    final maxY = maxC > 0 ? (maxC * 1.25).toDouble() : 5.0;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF131A2D) : theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
+          width: 1.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'DAILY ACTIVITY TIMELINE',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 10,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              if (peakStr != null)
+                Text(
+                  'Peak: $peakStr ($maxC msgs)',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 10,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Smooth Area Line Chart
+          SizedBox(
+            height: 120,
+            child: LineChart(
+              LineChartData(
+                gridData: const FlGridData(show: false),
+                borderData: FlBorderData(show: false),
+                minX: 0,
+                maxX: 23,
+                minY: 0,
+                maxY: maxY,
+                lineTouchData: LineTouchData(
+                  enabled: true,
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipColor: (_) => theme.colorScheme.surfaceContainerHighest,
+                    tooltipRoundedRadius: 8,
+                    getTooltipItems: (touchedSpots) {
+                      return touchedSpots.map((spot) {
+                        final h = spot.x.toInt();
+                        final count = spot.y.toInt();
+                        return LineTooltipItem(
+                          '${_formatHour(h)}\n$count notification${count == 1 ? '' : 's'}',
+                          TextStyle(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        );
+                      }).toList();
+                    },
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  show: true,
+                  leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 20,
+                      interval: 4,
+                      getTitlesWidget: (value, meta) {
+                        final h = value.toInt();
+                        if (h == 0) return const Text('12AM', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w500));
+                        if (h == 4) return const Text('4AM', style: TextStyle(fontSize: 8));
+                        if (h == 8) return const Text('8AM', style: TextStyle(fontSize: 8));
+                        if (h == 12) return const Text('12PM', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w500));
+                        if (h == 16) return const Text('4PM', style: TextStyle(fontSize: 8));
+                        if (h == 20) return const Text('8PM', style: TextStyle(fontSize: 8));
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                  ),
+                ),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: spots,
+                    isCurved: true,
+                    curveSmoothness: 0.35,
+                    color: theme.colorScheme.primary,
+                    barWidth: 2.2,
+                    isStrokeCapRound: true,
+                    dotData: FlDotData(
+                      show: maxC > 0,
+                      checkToShowDot: (spot, barData) => spot.x.toInt() == peakH && spot.y > 0,
+                      getDotPainter: (spot, percent, barData, index) {
+                        return FlDotCirclePainter(
+                          radius: 4,
+                          color: theme.colorScheme.primary,
+                          strokeWidth: 2,
+                          strokeColor: theme.colorScheme.surface,
+                        );
+                      },
+                    ),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          theme.colorScheme.primary.withValues(alpha: isDark ? 0.35 : 0.2),
+                          theme.colorScheme.primary.withValues(alpha: 0.0),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatHour(int hour) {
+    if (hour == 0) return '12:00 AM';
+    if (hour == 12) return '12:00 PM';
+    if (hour > 12) return '${hour - 12}:00 PM';
+    return '$hour:00 AM';
+  }
+}
+

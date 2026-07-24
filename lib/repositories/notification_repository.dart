@@ -4,24 +4,21 @@ import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import '../database/app_database.dart';
 import '../models/notification_model.dart';
-import '../core/services/category_service.dart';
+import '../core/helpers/deleted_tracker.dart';
 import '../core/services/notification_channel_service.dart';
 
 /// Repository that bridges the notification data layer — platform channel,
 /// local database, and category service.
 class NotificationRepository {
   final AppDatabase _db;
-  final CategoryService _categoryService;
   final NotificationChannelService _channelService;
 
   StreamSubscription? _notificationSubscription;
 
   NotificationRepository({
     AppDatabase? database,
-    CategoryService? categoryService,
     NotificationChannelService? channelService,
   })  : _db = database ?? AppDatabase.instance,
-        _categoryService = categoryService ?? CategoryService.instance,
         _channelService = channelService ?? NotificationChannelService.instance;
 
   /// Start listening for incoming notifications from the native platform.
@@ -95,18 +92,12 @@ class NotificationRepository {
     // Read Out Loud (TTS) is now handled completely in native Android Service
     // No need to speak it here.
 
-    // Auto-categorize
-    final category = _categoryService.categorize(
-      packageName: model.packageName,
-      title: model.title,
-      body: model.body,
-      bigText: model.bigText,
-      appCategory: data['appCategory'] as String?,
-      notificationCategory: data['category'] as String?,
-      isMessagingStyle: data['isMessagingStyle'] as bool? ?? false,
-    );
+    // Check if user set an explicit category override for this app
+    final userOverride = await _db.appPreferencesDao.getCategoryOverride(model.packageName);
 
-    final categorizedModel = model.copyWith(category: category);
+    // Use user override if set, otherwise use pre-computed category from native side
+    final resolvedCategory = userOverride ?? data['resolvedCategory'] as String? ?? model.category;
+    final categorizedModel = model.copyWith(category: resolvedCategory);
 
     // Save to database
     await saveNotification(categorizedModel);
@@ -245,23 +236,32 @@ class NotificationRepository {
   Future<void> markAsRead(String id) => _db.notificationDao.markAsRead(id);
 
   /// Delete a notification.
-  Future<void> deleteNotification(String id) =>
-      _db.notificationDao.deleteNotification(id);
+  Future<void> deleteNotification(String id) async {
+    await _db.notificationDao.deleteNotification(id);
+    await DeletedTracker.recordDeletions(1);
+  }
 
   /// Delete multiple notifications.
-  Future<int> deleteNotifications(List<String> ids) =>
-      _db.notificationDao.deleteNotifications(ids);
+  Future<int> deleteNotifications(List<String> ids) async {
+    final count = await _db.notificationDao.deleteNotifications(ids);
+    await DeletedTracker.recordDeletions(count);
+    return count;
+  }
 
   /// Delete old notifications (retention policy).
-  Future<int> deleteOlderThan(int days) {
+  Future<int> deleteOlderThan(int days) async {
     final cutoff = DateTime.now().subtract(Duration(days: days));
-    return _db.notificationDao.deleteOlderThan(cutoff);
+    final count = await _db.notificationDao.deleteOlderThan(cutoff);
+    await DeletedTracker.recordDeletions(count);
+    return count;
   }
 
   /// Clear all data.
   Future<void> clearAll() async {
+    final count = await _db.notificationDao.getTotalCount();
     await _db.notificationDao.deleteAll();
     await _db.appDao.deleteAll();
+    await DeletedTracker.recordDeletions(count);
   }
 
 
@@ -289,6 +289,23 @@ class NotificationRepository {
   /// Open permission settings.
   Future<void> openPermissionSettings() =>
       _channelService.openPermissionSettings();
+
+  /// Update category for an app (sets user override and bulk updates existing notifications).
+  Future<void> updateAppCategoryOverride({
+    required String packageName,
+    required String appName,
+    required String category,
+  }) async {
+    await _db.appPreferencesDao.setCategoryOverride(
+      packageName,
+      appName,
+      category,
+    );
+    await _db.notificationDao.updateCategoryByPackage(
+      packageName,
+      category,
+    );
+  }
 
   /// Convert a Drift Notification row to NotificationModel.
   NotificationModel _toModel(Notification row) {

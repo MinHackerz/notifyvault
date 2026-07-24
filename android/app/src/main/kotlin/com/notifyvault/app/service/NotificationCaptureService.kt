@@ -98,8 +98,19 @@ class NotificationCaptureService : NotificationListenerService(), TextToSpeech.O
         return false
     }
 
+    private var lastCapturedKey: String? = null
+    private var lastCapturedTime: Long = 0
+
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         if (sbn == null) return
+        
+        // Skip ongoing background notifications (e.g. download progress, media player controls)
+        val isOngoing = sbn.isOngoing || (sbn.notification.flags and Notification.FLAG_ONGOING_EVENT) != 0
+        if (isOngoing) {
+            DatabaseHelper.logToFile(applicationContext, "Skipped ongoing notification from: ${sbn.packageName}")
+            return
+        }
+
         DatabaseHelper.logToFile(applicationContext, "onNotificationPosted triggered from: ${sbn.packageName}")
 
         // Skip our own notifications to avoid loops
@@ -110,6 +121,18 @@ class NotificationCaptureService : NotificationListenerService(), TextToSpeech.O
 
         try {
             val data = extractNotificationData(sbn)
+            val titleStr = data["title"] as? String ?: ""
+            val bodyStr = data["body"] as? String ?: ""
+            val currentKey = "${sbn.packageName}|$titleStr|$bodyStr"
+            val now = System.currentTimeMillis()
+
+            // Deduplication check: ignore identical notification from same app within 3 seconds
+            if (currentKey == lastCapturedKey && (now - lastCapturedTime) < 3000) {
+                DatabaseHelper.logToFile(applicationContext, "Skipped duplicate notification within 3s: ${sbn.packageName}")
+                return
+            }
+            lastCapturedKey = currentKey
+            lastCapturedTime = now
             
             // Native TTS logic
             val packageName = data["packageName"] as? String ?: ""
@@ -301,6 +324,18 @@ class NotificationCaptureService : NotificationListenerService(), TextToSpeech.O
                                extras.containsKey("android.messagingStyleUser") || 
                                (senderName != null && senderName.isNotEmpty())
 
+        // Classify using the centralized engine (single source of truth)
+        val resolvedCategory = DatabaseHelper.classifyNotification(
+            context = applicationContext,
+            packageName = sbn.packageName,
+            title = title,
+            body = body,
+            bigText = bigText,
+            appCategory = appCategory,
+            notificationCategory = notification.category,
+            isMessagingStyle = isMessagingStyle
+        )
+
         // Build the data map
         return mapOf(
             "id" to sbn.key,
@@ -322,6 +357,7 @@ class NotificationCaptureService : NotificationListenerService(), TextToSpeech.O
             "category" to notification.category,
             "appCategory" to appCategory,
             "isMessagingStyle" to isMessagingStyle,
+            "resolvedCategory" to resolvedCategory,
             "iconPath" to iconPath,
             "action" to "posted"
         )

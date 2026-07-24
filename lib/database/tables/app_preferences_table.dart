@@ -11,6 +11,10 @@ class AppPreferences extends Table {
       
   BoolColumn get readOutLoud => boolean().withDefault(const Constant(false))();
 
+  /// User-assigned category override. When non-null, takes absolute priority
+  /// over all auto-detection (package map, metadata, keywords).
+  TextColumn get categoryOverride => text().nullable()();
+
   DateTimeColumn get updatedAt => dateTime().nullable()();
 
   @override

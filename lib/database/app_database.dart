@@ -28,7 +28,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -49,6 +49,13 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(appPreferences, appPreferences.readOutLoud);
           } catch (_) {
             // Column may already exist from a prior install/test — safe to ignore
+          }
+        }
+        if (from < 4) {
+          try {
+            await m.addColumn(appPreferences, appPreferences.categoryOverride);
+          } catch (_) {
+            // Column may already exist — safe to ignore
           }
         }
       },

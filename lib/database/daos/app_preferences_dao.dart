@@ -111,4 +111,30 @@ class AppPreferencesDao extends DatabaseAccessor<AppDatabase>
     final spam = await getByStatus('spam');
     return spam.map((p) => p.packageName).toSet();
   }
+
+  /// Set or clear a user category override for an app.
+  /// When set, this takes absolute priority over all auto-detection.
+  Future<void> setCategoryOverride(
+      String packageName, String appName, String category) async {
+    final existing = await getPreference(packageName);
+    final status = existing?.status ?? 'normal';
+    final readOutLoudVal = existing?.readOutLoud ?? false;
+
+    await into(appPreferences).insertOnConflictUpdate(
+      AppPreferencesCompanion(
+        packageName: Value(packageName),
+        appName: Value(appName),
+        status: Value(status),
+        readOutLoud: Value(readOutLoudVal),
+        categoryOverride: Value(category),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  /// Get the user's category override for an app, or null if not set.
+  Future<String?> getCategoryOverride(String packageName) async {
+    final pref = await getPreference(packageName);
+    return pref?.categoryOverride;
+  }
 }

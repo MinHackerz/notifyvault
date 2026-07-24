@@ -67,8 +67,9 @@ class AppDao extends DatabaseAccessor<AppDatabase> with _$AppDaoMixin {
   Future<int> getAppCount() async {
     final count = apps.packageName.count();
     final query = selectOnly(apps)..addColumns([count]);
-    final result = await query.getSingle();
-    return result.read(count) ?? 0;
+    final result = await query.getSingleOrNull();
+    if (result == null) return 0;
+    return result.read<int>(count) ?? 0;
   }
 
   /// Delete all app data.

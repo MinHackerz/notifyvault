@@ -1763,6 +1763,17 @@ class $AppPreferencesTable extends AppPreferences
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _categoryOverrideMeta = const VerificationMeta(
+    'categoryOverride',
+  );
+  @override
+  late final GeneratedColumn<String> categoryOverride = GeneratedColumn<String>(
+    'category_override',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -1780,6 +1791,7 @@ class $AppPreferencesTable extends AppPreferences
     appName,
     status,
     readOutLoud,
+    categoryOverride,
     updatedAt,
   ];
   @override
@@ -1828,6 +1840,15 @@ class $AppPreferencesTable extends AppPreferences
         ),
       );
     }
+    if (data.containsKey('category_override')) {
+      context.handle(
+        _categoryOverrideMeta,
+        categoryOverride.isAcceptableOrUnknown(
+          data['category_override']!,
+          _categoryOverrideMeta,
+        ),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -1859,6 +1880,10 @@ class $AppPreferencesTable extends AppPreferences
         DriftSqlType.bool,
         data['${effectivePrefix}read_out_loud'],
       )!,
+      categoryOverride: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category_override'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -1879,12 +1904,17 @@ class AppPreference extends DataClass implements Insertable<AppPreference> {
   /// Status: 'normal', 'priority', 'blocked', 'spam'
   final String status;
   final bool readOutLoud;
+
+  /// User-assigned category override. When non-null, takes absolute priority
+  /// over all auto-detection (package map, metadata, keywords).
+  final String? categoryOverride;
   final DateTime? updatedAt;
   const AppPreference({
     required this.packageName,
     required this.appName,
     required this.status,
     required this.readOutLoud,
+    this.categoryOverride,
     this.updatedAt,
   });
   @override
@@ -1894,6 +1924,9 @@ class AppPreference extends DataClass implements Insertable<AppPreference> {
     map['app_name'] = Variable<String>(appName);
     map['status'] = Variable<String>(status);
     map['read_out_loud'] = Variable<bool>(readOutLoud);
+    if (!nullToAbsent || categoryOverride != null) {
+      map['category_override'] = Variable<String>(categoryOverride);
+    }
     if (!nullToAbsent || updatedAt != null) {
       map['updated_at'] = Variable<DateTime>(updatedAt);
     }
@@ -1906,6 +1939,9 @@ class AppPreference extends DataClass implements Insertable<AppPreference> {
       appName: Value(appName),
       status: Value(status),
       readOutLoud: Value(readOutLoud),
+      categoryOverride: categoryOverride == null && nullToAbsent
+          ? const Value.absent()
+          : Value(categoryOverride),
       updatedAt: updatedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(updatedAt),
@@ -1922,6 +1958,7 @@ class AppPreference extends DataClass implements Insertable<AppPreference> {
       appName: serializer.fromJson<String>(json['appName']),
       status: serializer.fromJson<String>(json['status']),
       readOutLoud: serializer.fromJson<bool>(json['readOutLoud']),
+      categoryOverride: serializer.fromJson<String?>(json['categoryOverride']),
       updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
     );
   }
@@ -1933,6 +1970,7 @@ class AppPreference extends DataClass implements Insertable<AppPreference> {
       'appName': serializer.toJson<String>(appName),
       'status': serializer.toJson<String>(status),
       'readOutLoud': serializer.toJson<bool>(readOutLoud),
+      'categoryOverride': serializer.toJson<String?>(categoryOverride),
       'updatedAt': serializer.toJson<DateTime?>(updatedAt),
     };
   }
@@ -1942,12 +1980,16 @@ class AppPreference extends DataClass implements Insertable<AppPreference> {
     String? appName,
     String? status,
     bool? readOutLoud,
+    Value<String?> categoryOverride = const Value.absent(),
     Value<DateTime?> updatedAt = const Value.absent(),
   }) => AppPreference(
     packageName: packageName ?? this.packageName,
     appName: appName ?? this.appName,
     status: status ?? this.status,
     readOutLoud: readOutLoud ?? this.readOutLoud,
+    categoryOverride: categoryOverride.present
+        ? categoryOverride.value
+        : this.categoryOverride,
     updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
   );
   AppPreference copyWithCompanion(AppPreferencesCompanion data) {
@@ -1960,6 +2002,9 @@ class AppPreference extends DataClass implements Insertable<AppPreference> {
       readOutLoud: data.readOutLoud.present
           ? data.readOutLoud.value
           : this.readOutLoud,
+      categoryOverride: data.categoryOverride.present
+          ? data.categoryOverride.value
+          : this.categoryOverride,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -1971,14 +2016,21 @@ class AppPreference extends DataClass implements Insertable<AppPreference> {
           ..write('appName: $appName, ')
           ..write('status: $status, ')
           ..write('readOutLoud: $readOutLoud, ')
+          ..write('categoryOverride: $categoryOverride, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(packageName, appName, status, readOutLoud, updatedAt);
+  int get hashCode => Object.hash(
+    packageName,
+    appName,
+    status,
+    readOutLoud,
+    categoryOverride,
+    updatedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1987,6 +2039,7 @@ class AppPreference extends DataClass implements Insertable<AppPreference> {
           other.appName == this.appName &&
           other.status == this.status &&
           other.readOutLoud == this.readOutLoud &&
+          other.categoryOverride == this.categoryOverride &&
           other.updatedAt == this.updatedAt);
 }
 
@@ -1995,6 +2048,7 @@ class AppPreferencesCompanion extends UpdateCompanion<AppPreference> {
   final Value<String> appName;
   final Value<String> status;
   final Value<bool> readOutLoud;
+  final Value<String?> categoryOverride;
   final Value<DateTime?> updatedAt;
   final Value<int> rowid;
   const AppPreferencesCompanion({
@@ -2002,6 +2056,7 @@ class AppPreferencesCompanion extends UpdateCompanion<AppPreference> {
     this.appName = const Value.absent(),
     this.status = const Value.absent(),
     this.readOutLoud = const Value.absent(),
+    this.categoryOverride = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -2010,6 +2065,7 @@ class AppPreferencesCompanion extends UpdateCompanion<AppPreference> {
     required String appName,
     this.status = const Value.absent(),
     this.readOutLoud = const Value.absent(),
+    this.categoryOverride = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : packageName = Value(packageName),
@@ -2019,6 +2075,7 @@ class AppPreferencesCompanion extends UpdateCompanion<AppPreference> {
     Expression<String>? appName,
     Expression<String>? status,
     Expression<bool>? readOutLoud,
+    Expression<String>? categoryOverride,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
@@ -2027,6 +2084,7 @@ class AppPreferencesCompanion extends UpdateCompanion<AppPreference> {
       if (appName != null) 'app_name': appName,
       if (status != null) 'status': status,
       if (readOutLoud != null) 'read_out_loud': readOutLoud,
+      if (categoryOverride != null) 'category_override': categoryOverride,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -2037,6 +2095,7 @@ class AppPreferencesCompanion extends UpdateCompanion<AppPreference> {
     Value<String>? appName,
     Value<String>? status,
     Value<bool>? readOutLoud,
+    Value<String?>? categoryOverride,
     Value<DateTime?>? updatedAt,
     Value<int>? rowid,
   }) {
@@ -2045,6 +2104,7 @@ class AppPreferencesCompanion extends UpdateCompanion<AppPreference> {
       appName: appName ?? this.appName,
       status: status ?? this.status,
       readOutLoud: readOutLoud ?? this.readOutLoud,
+      categoryOverride: categoryOverride ?? this.categoryOverride,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
@@ -2065,6 +2125,9 @@ class AppPreferencesCompanion extends UpdateCompanion<AppPreference> {
     if (readOutLoud.present) {
       map['read_out_loud'] = Variable<bool>(readOutLoud.value);
     }
+    if (categoryOverride.present) {
+      map['category_override'] = Variable<String>(categoryOverride.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -2081,6 +2144,7 @@ class AppPreferencesCompanion extends UpdateCompanion<AppPreference> {
           ..write('appName: $appName, ')
           ..write('status: $status, ')
           ..write('readOutLoud: $readOutLoud, ')
+          ..write('categoryOverride: $categoryOverride, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -2977,6 +3041,7 @@ typedef $$AppPreferencesTableCreateCompanionBuilder =
       required String appName,
       Value<String> status,
       Value<bool> readOutLoud,
+      Value<String?> categoryOverride,
       Value<DateTime?> updatedAt,
       Value<int> rowid,
     });
@@ -2986,6 +3051,7 @@ typedef $$AppPreferencesTableUpdateCompanionBuilder =
       Value<String> appName,
       Value<String> status,
       Value<bool> readOutLoud,
+      Value<String?> categoryOverride,
       Value<DateTime?> updatedAt,
       Value<int> rowid,
     });
@@ -3016,6 +3082,11 @@ class $$AppPreferencesTableFilterComposer
 
   ColumnFilters<bool> get readOutLoud => $composableBuilder(
     column: $table.readOutLoud,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get categoryOverride => $composableBuilder(
+    column: $table.categoryOverride,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3054,6 +3125,11 @@ class $$AppPreferencesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get categoryOverride => $composableBuilder(
+    column: $table.categoryOverride,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -3082,6 +3158,11 @@ class $$AppPreferencesTableAnnotationComposer
 
   GeneratedColumn<bool> get readOutLoud => $composableBuilder(
     column: $table.readOutLoud,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get categoryOverride => $composableBuilder(
+    column: $table.categoryOverride,
     builder: (column) => column,
   );
 
@@ -3126,6 +3207,7 @@ class $$AppPreferencesTableTableManager
                 Value<String> appName = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<bool> readOutLoud = const Value.absent(),
+                Value<String?> categoryOverride = const Value.absent(),
                 Value<DateTime?> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => AppPreferencesCompanion(
@@ -3133,6 +3215,7 @@ class $$AppPreferencesTableTableManager
                 appName: appName,
                 status: status,
                 readOutLoud: readOutLoud,
+                categoryOverride: categoryOverride,
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
@@ -3142,6 +3225,7 @@ class $$AppPreferencesTableTableManager
                 required String appName,
                 Value<String> status = const Value.absent(),
                 Value<bool> readOutLoud = const Value.absent(),
+                Value<String?> categoryOverride = const Value.absent(),
                 Value<DateTime?> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => AppPreferencesCompanion.insert(
@@ -3149,6 +3233,7 @@ class $$AppPreferencesTableTableManager
                 appName: appName,
                 status: status,
                 readOutLoud: readOutLoud,
+                categoryOverride: categoryOverride,
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
