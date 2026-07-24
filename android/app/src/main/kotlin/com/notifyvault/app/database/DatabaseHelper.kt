@@ -17,15 +17,7 @@ object DatabaseHelper {
     private const val DATABASE_NAME_FALLBACK = "notify_vault.db"
 
     fun logToFile(context: Context, message: String) {
-        Log.d(TAG, message)
-        try {
-            val logFile = File(context.filesDir, "service_debug.txt")
-            if (logFile.exists()) {
-                logFile.delete()
-            }
-        } catch (e: Exception) {
-            // ignore
-        }
+        // Disabled in production release to eliminate disk write overhead
     }
 
     private fun getDatabase(context: Context): SQLiteDatabase? {
@@ -138,6 +130,19 @@ object DatabaseHelper {
 
             val rowId = db.insertWithOnConflict("notifications", null, values, SQLiteDatabase.CONFLICT_REPLACE)
             logToFile(context, "Inserted notification row: $rowId, finalId: $finalId")
+
+            // Auto retention cleanup in background
+            try {
+                val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+                val retentionDays = prefs.getLong("flutter.retention_period", 30L).toInt()
+                val cutoffSec = (System.currentTimeMillis() / 1000) - (retentionDays * 86400L)
+                val purgedCount = db.delete("notifications", "timestamp < ?", arrayOf(cutoffSec.toString()))
+                if (purgedCount > 0) {
+                    logToFile(context, "Native retention cleanup purged $purgedCount notifications older than $retentionDays days")
+                }
+            } catch (e: Exception) {
+                logToFile(context, "Native retention cleanup error: ${e.message}")
+            }
 
             // 5. Upsert app (compatible with all SQLite/Android versions)
             val cursor = db.rawQuery("SELECT notification_count, icon_path FROM apps WHERE package_name = ?", arrayOf(packageName))

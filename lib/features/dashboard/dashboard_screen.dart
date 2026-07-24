@@ -725,42 +725,104 @@ class _RecentActivityTabs extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedTab = ref.watch(dashboardTabProvider);
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          _buildTab(context, ref, 'priority', 'Priority', selectedTab == 'priority'),
+          Expanded(
+            child: _buildTab(
+              context,
+              ref,
+              'priority',
+              'Priority',
+              HugeIcons.strokeRoundedStar,
+              selectedTab == 'priority',
+            ),
+          ),
           const SizedBox(width: 8),
-          _buildTab(context, ref, 'normal', 'Normal', selectedTab == 'normal'),
+          Expanded(
+            child: _buildTab(
+              context,
+              ref,
+              'normal',
+              'Normal',
+              HugeIcons.strokeRoundedNotification01,
+              selectedTab == 'normal',
+            ),
+          ),
           const SizedBox(width: 8),
-          _buildTab(context, ref, 'spam', 'Spam', selectedTab == 'spam'),
+          Expanded(
+            child: _buildTab(
+              context,
+              ref,
+              'spam',
+              'Spam',
+              HugeIcons.strokeRoundedAlertCircle,
+              selectedTab == 'spam',
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildTab(BuildContext context, WidgetRef ref, String id, String label, bool isSelected) {
+  Widget _buildTab(
+    BuildContext context,
+    WidgetRef ref,
+    String id,
+    String label,
+    List<List<dynamic>> icon,
+    bool isSelected,
+  ) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
-    return InkWell(
-      onTap: () => ref.read(dashboardTabProvider.notifier).setTab(id),
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected ? theme.colorScheme.primary : (isDark ? const Color(0xFF131A2D) : theme.colorScheme.surface),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? theme.colorScheme.primary : theme.colorScheme.outline.withValues(alpha: 0.5),
+
+    final activeBg = isDark
+        ? theme.colorScheme.primary.withValues(alpha: 0.18)
+        : theme.colorScheme.primary.withValues(alpha: 0.1);
+    final activeColor = theme.colorScheme.primary;
+    final inactiveColor = theme.colorScheme.onSurfaceVariant;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => ref.read(dashboardTabProvider.notifier).setTab(id),
+        borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeInOut,
+          padding: const EdgeInsets.symmetric(vertical: 9),
+          decoration: BoxDecoration(
+            color: isSelected ? activeBg : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected
+                  ? theme.colorScheme.primary.withValues(alpha: 0.3)
+                  : isDark
+                      ? AppColors.outlineDark
+                      : AppColors.outlineLight,
+              width: 1.0,
+            ),
           ),
-        ),
-        child: Text(
-          label,
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: isSelected ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              HugeIcon(
+                icon: icon,
+                size: 14,
+                color: isSelected ? activeColor : inactiveColor,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? activeColor : inactiveColor,
+                ),
+              ),
+            ],
           ),
         ),
       ),
