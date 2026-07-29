@@ -23,19 +23,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       visual: _CaptureVisual(),
       title: 'Capture Every\nNotification',
       subtitle:
-          'Automatically save notifications from all your apps. Never miss an OTP, delivery update, or important message again.',
+          'Automatically save notifications from all your apps. Never lose an OTP, delivery update, or cleared alert again.',
     ),
     const _OnboardingPage(
-      visual: _SearchVisual(),
-      title: 'Search & Organize\nInstantly',
+      visual: _FinancialVisual(),
+      title: 'Auto-Track Expenses\n& Banking',
       subtitle:
-          'Find any notification in milliseconds. Smart categories organize your OTPs, banking, shopping, and social updates automatically.',
+          'Seamlessly parse bank SMS and UPI alerts into organized expense summaries, debits, credits, and merchant insights.',
     ),
     const _OnboardingPage(
-      visual: _SecurityVisual(),
-      title: 'Secure &\nPrivate',
+      visual: _RemindersVisual(),
+      title: 'Smart Reminders\n& Voice Reader',
       subtitle:
-          'Your notifications stay on your device by default. Your data, your rules.',
+          'Turn notifications into scheduled reminders with one tap, or announce incoming messages hands-free while driving.',
     ),
   ];
 
@@ -373,8 +373,8 @@ class _CaptureVisual extends StatelessWidget {
   }
 }
 
-class _SearchVisual extends StatelessWidget {
-  const _SearchVisual();
+class _FinancialVisual extends StatelessWidget {
+  const _FinancialVisual();
 
   @override
   Widget build(BuildContext context) {
@@ -387,48 +387,63 @@ class _SearchVisual extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Search Bar
+          // Total Spend Card Mock
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
+              color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
+                color: theme.colorScheme.primary.withValues(alpha: 0.3),
                 width: 1.0,
               ),
             ),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedSearch01,
-                  color: theme.colorScheme.onSurfaceVariant,
-                  size: 18,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'TOTAL MONTHLY SPEND',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '₹5,300.00',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                Text(
-                  'Search OTP, messages...',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    'Finance Auto-Parsed',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
-          // Category chips
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildChip(context, 'All', isSelected: true),
-              _buildChip(context, 'OTPs', isSelected: false),
-              _buildChip(context, 'Finance', isSelected: false),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Filtered notification
+          const SizedBox(height: 10),
+          // Transaction 1
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
@@ -442,35 +457,41 @@ class _SearchVisual extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.1),
+                    color: Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedKey01,
+                    icon: HugeIcons.strokeRoundedBank,
                     size: 16,
-                    color: Colors.amber,
+                    color: Colors.red,
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Google Authentication',
+                        'HDFC Bank Debit • Apple Store',
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
-                        'Your code is: 593 192',
+                        'Rs 4,850.00 debited from A/C XX4920',
                         style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: 10,
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
+                  ),
+                ),
+                Text(
+                  '-₹4,850',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
@@ -480,38 +501,10 @@ class _SearchVisual extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildChip(BuildContext context, String label, {required bool isSelected}) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: isSelected ? theme.colorScheme.primary : theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isSelected
-              ? theme.colorScheme.primary
-              : (isDark ? AppColors.outlineDark : AppColors.outlineLight),
-          width: 1.0,
-        ),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? Colors.white : theme.colorScheme.onSurfaceVariant,
-          fontSize: 11,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
-    );
-  }
 }
 
-class _SecurityVisual extends StatelessWidget {
-  const _SecurityVisual();
+class _RemindersVisual extends StatelessWidget {
+  const _RemindersVisual();
 
   @override
   Widget build(BuildContext context) {
@@ -519,65 +512,99 @@ class _SecurityVisual extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return SizedBox(
-      height: 160,
+      height: 180,
       width: 320,
-      child: Stack(
-        alignment: Alignment.center,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Central Shield + Lock in clean flat style
+          // Reminder Card 1
           Container(
-            width: 80,
-            height: 80,
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: theme.colorScheme.surface,
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
                 width: 1.0,
               ),
             ),
-            child: HugeIcon(
-              icon: HugeIcons.strokeRoundedCircleUnlock01,
-              size: 32,
-              color: theme.colorScheme.primary,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedAlarmClock,
+                    size: 20,
+                    color: Colors.amber,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Flight UA 482 to SF',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Icon(Icons.schedule, size: 12, color: theme.colorScheme.primary),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Scheduled for Today, 5:00 PM',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontSize: 11,
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-
-          // Badges
-          Positioned(
-            top: 10,
-            left: 40,
-            child: _buildOrbitingBadge(context, HugeIcons.strokeRoundedFileLock, 'Local DB'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOrbitingBadge(BuildContext context, List<List<dynamic>> icon, String label) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
-          width: 1.0,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          HugeIcon(icon: icon, size: 14, color: theme.colorScheme.primary),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
+          const SizedBox(height: 10),
+          // Voice Reader Badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.categoryWork.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppColors.categoryWork.withValues(alpha: 0.3),
+                width: 1.0,
+              ),
+            ),
+            child: Row(
+              children: [
+                const HugeIcon(
+                  icon: HugeIcons.strokeRoundedMegaphone01,
+                  size: 18,
+                  color: AppColors.categoryWork,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Hands-Free Voice Reader Active',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: AppColors.categoryWork,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.volume_up, size: 16, color: AppColors.categoryWork),
+              ],
             ),
           ),
         ],

@@ -1,6 +1,8 @@
 package com.notifyvault.app.channel
 
+import android.app.AlarmManager
 import android.app.AppOpsManager
+import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -13,6 +15,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
+import com.notifyvault.app.receiver.ReminderAlarmReceiver
 import com.notifyvault.app.service.NotificationCaptureService
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
@@ -44,6 +47,21 @@ class NotificationMethodChannel(private val flutterEngine: FlutterEngine) {
             METHOD_CHANNEL
         ).setMethodCallHandler { call, result ->
             when (call.method) {
+                "scheduleNativeAlarm" -> {
+                    val id = call.argument<Int>("id") ?: 0
+                    val title = call.argument<String>("title") ?: ""
+                    val body = call.argument<String>("body") ?: ""
+                    val timeMs = call.argument<Number>("timeMs")?.toLong() ?: 0L
+                    scheduleNativeAlarm(activity, id, title, body, timeMs)
+                    result.success(true)
+                }
+
+                "cancelNativeAlarm" -> {
+                    val id = call.argument<Int>("id") ?: 0
+                    cancelNativeAlarm(activity, id)
+                    result.success(true)
+                }
+
                 "isPermissionGranted" -> {
                     val enabled = isNotificationListenerEnabled(activity)
                     if (enabled && NotificationCaptureService.instance == null) {
@@ -353,6 +371,50 @@ class NotificationMethodChannel(private val flutterEngine: FlutterEngine) {
         } catch (e: Exception) {
             Log.e("NotifyVault", "Error saving app icon for $packageName: ${e.message}")
             return null
+        }
+    }
+
+    private fun scheduleNativeAlarm(context: Context, id: Int, title: String, body: String, timeMs: Long) {
+        try {
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+            val intent = Intent(context, ReminderAlarmReceiver::class.java).apply {
+                putExtra("reminder_id", id)
+                putExtra("reminder_title", title)
+                putExtra("reminder_body", body)
+            }
+            val pendingIntent = PendingIntent.getBroadcast(
+                context,
+                id,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                val alarmClockInfo = AlarmManager.AlarmClockInfo(timeMs, pendingIntent)
+                alarmManager.setAlarmClock(alarmClockInfo, pendingIntent)
+            } else {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeMs, pendingIntent)
+            }
+            Log.d("NotifyVault", "Native Alarm Clock Scheduled #$id for epoch MS: $timeMs")
+        } catch (e: Exception) {
+            Log.e("NotifyVault", "Failed to schedule native alarm #$id: ${e.message}")
+        }
+    }
+
+    private fun cancelNativeAlarm(context: Context, id: Int) {
+        try {
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+            val intent = Intent(context, ReminderAlarmReceiver::class.java)
+            val pendingIntent = PendingIntent.getBroadcast(
+                context,
+                id,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            alarmManager.cancel(pendingIntent)
+            Log.d("NotifyVault", "Native Alarm Canceled #$id")
+        } catch (e: Exception) {
+            Log.e("NotifyVault", "Failed to cancel native alarm #$id: ${e.message}")
         }
     }
 }

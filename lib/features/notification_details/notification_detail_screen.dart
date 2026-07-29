@@ -2,17 +2,21 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:intl/intl.dart';
 import '../../providers/notification_providers.dart';
 import '../../models/notification_model.dart';
 import '../../models/category_model.dart';
 import '../../core/extensions/date_extensions.dart';
 import '../../core/extensions/context_extensions.dart';
 import '../../core/helpers/notification_parser.dart';
+import '../../core/helpers/reminder_parser.dart';
 import '../../core/helpers/launch_app_helper.dart';
 import '../../core/widgets/category_chip.dart';
 import '../../app/theme/app_colors.dart';
+import '../../providers/reminder_providers.dart';
 
 import '../../core/widgets/fading_app_bar.dart';
 
@@ -89,7 +93,69 @@ class NotificationDetailScreen extends ConsumerWidget {
       body: detailAsync.when(
         data: (notification) {
           if (notification == null) {
-            return const Center(child: Text('Notification not found'));
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedNotificationOff01,
+                        size: 40,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Notification Archived or Moved',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'The original notification item is no longer in active log, but your scheduled reminders remain active.',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: () => context.go('/timeline'),
+                          icon: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedTime02,
+                            size: 18,
+                            color: AppColors.primary,
+                          ),
+                          label: const Text('Timeline'),
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton.icon(
+                          onPressed: () => context.go('/dashboard'),
+                          icon: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedHome01,
+                            size: 18,
+                            color: Colors.white,
+                          ),
+                          label: const Text('Dashboard'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
           }
           return _buildContent(context, ref, notification);
         },
@@ -352,6 +418,11 @@ class NotificationDetailScreen extends ConsumerWidget {
 
           // Extracted info chips
           _buildExtractedData(context, notification),
+
+          const SizedBox(height: 16),
+
+          // Smart Actionable Reminder Section
+          _buildSmartReminderSection(context, ref, notification),
         ],
       ),
     );
@@ -506,6 +577,415 @@ class NotificationDetailScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSmartReminderSection(
+      BuildContext context, WidgetRef ref, NotificationModel notification) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final event = ReminderParser.parse(notification);
+    final existingReminderAsync = ref.watch(existingReminderForNotificationProvider(notification.id));
+    final existingReminder = existingReminderAsync.value;
+
+    final isReminderSet = existingReminder != null;
+
+    if (event != null) {
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isReminderSet
+              ? AppColors.success.withValues(alpha: isDark ? 0.15 : 0.08)
+              : theme.colorScheme.primary.withValues(alpha: isDark ? 0.12 : 0.06),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isReminderSet
+                ? AppColors.success.withValues(alpha: 0.35)
+                : theme.colorScheme.primary.withValues(alpha: 0.25),
+            width: 1.0,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: (isReminderSet ? AppColors.success : theme.colorScheme.primary)
+                        .withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: HugeIcon(
+                    icon: isReminderSet
+                        ? HugeIcons.strokeRoundedCheckmarkCircle02
+                        : HugeIcons.strokeRoundedCalendar01,
+                    size: 16,
+                    color: isReminderSet ? AppColors.success : theme.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  isReminderSet
+                      ? 'REMINDER ACTIVE'
+                      : event.categoryLabel.toUpperCase(),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: isReminderSet ? AppColors.success : theme.colorScheme.primary,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              isReminderSet ? existingReminder.title : event.title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              isReminderSet
+                  ? 'Scheduled for: ${_formatDateTime(existingReminder.scheduledAt)}'
+                  : 'Suggested reminder: ${_formatDateTime(event.suggestedTime)}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontSize: 12,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _showScheduleReminderSheet(
+                  context,
+                  ref,
+                  notification,
+                  event,
+                  existingReminder: existingReminder,
+                ),
+                icon: HugeIcon(
+                  icon: isReminderSet
+                      ? HugeIcons.strokeRoundedEdit02
+                      : HugeIcons.strokeRoundedAlarmClock,
+                  size: 16,
+                  color: Colors.white,
+                ),
+                label: Text(
+                  isReminderSet ? 'Update Existing Reminder' : 'Set Reminder',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isReminderSet ? AppColors.success : theme.colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return InkWell(
+      onTap: () => _showScheduleReminderSheet(
+        context,
+        ref,
+        notification,
+        null,
+        existingReminder: existingReminder,
+      ),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isReminderSet
+              ? AppColors.success.withValues(alpha: isDark ? 0.12 : 0.06)
+              : theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isReminderSet
+                ? AppColors.success.withValues(alpha: 0.3)
+                : (isDark ? AppColors.outlineDark : AppColors.outlineLight),
+            width: 1.0,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: (isReminderSet ? AppColors.success : theme.colorScheme.primary)
+                    .withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: HugeIcon(
+                icon: isReminderSet
+                    ? HugeIcons.strokeRoundedCheckmarkCircle02
+                    : HugeIcons.strokeRoundedAlarmClock,
+                size: 18,
+                color: isReminderSet ? AppColors.success : theme.colorScheme.primary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isReminderSet ? 'Update Existing Reminder' : 'Set Follow-up Reminder',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
+                  ),
+                  Text(
+                    isReminderSet
+                        ? 'Scheduled for ${_formatDateTime(existingReminder.scheduledAt)}'
+                        : 'Schedule a local reminder for this notification',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              size: 16,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatDateTime(DateTime dt) {
+    return '${dt.day}/${dt.month}/${dt.year} at ${DateFormat('jm').format(dt)}';
+  }
+
+  void _showScheduleReminderSheet(
+    BuildContext context,
+    WidgetRef ref,
+    NotificationModel notification,
+    DetectedActionableEvent? event, {
+    ReminderItem? existingReminder,
+  }) {
+    final theme = Theme.of(context);
+    final initialDate = existingReminder?.scheduledAt ?? event?.suggestedTime ?? DateTime.now().add(const Duration(days: 1));
+    DateTime selectedDateTime = initialDate.isBefore(DateTime.now())
+        ? DateTime.now().add(const Duration(hours: 1))
+        : initialDate;
+
+    final titleController = TextEditingController(
+      text: existingReminder?.title ?? event?.title ?? 'Follow up: ${notification.appName}',
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: theme.colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                16,
+                20,
+                MediaQuery.of(context).viewInsets.bottom + 20,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Text(
+                        existingReminder != null ? 'Update Reminder' : 'Schedule Reminder',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 18,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (existingReminder != null)
+                        IconButton(
+                          tooltip: 'Delete Reminder',
+                          icon: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedDelete02,
+                            color: AppColors.error,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            ref.read(reminderControllerProvider).deleteReminder(existingReminder.id);
+                            context.showSnackBar('Reminder deleted.');
+                          },
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: titleController,
+                    decoration: InputDecoration(
+                      labelText: 'Reminder Title',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Scheduled Date & Time',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  InkWell(
+                    onTap: () async {
+                      final now = DateTime.now();
+                      final initialForPicker = selectedDateTime.isBefore(now) ? now : selectedDateTime;
+                      final firstForPicker = selectedDateTime.isBefore(now)
+                          ? selectedDateTime.subtract(const Duration(days: 1))
+                          : now;
+
+                      final pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: initialForPicker,
+                        firstDate: firstForPicker,
+                        lastDate: now.add(const Duration(days: 365)),
+                        builder: (ctx, child) => Theme(data: theme, child: child!),
+                      );
+                      if (pickedDate != null && context.mounted) {
+                        final pickedTime = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.fromDateTime(selectedDateTime),
+                          builder: (ctx, child) => Theme(data: theme, child: child!),
+                        );
+                        if (pickedTime != null) {
+                          setModalState(() {
+                            selectedDateTime = DateTime(
+                              pickedDate.year,
+                              pickedDate.month,
+                              pickedDate.day,
+                              pickedTime.hour,
+                              pickedTime.minute,
+                            );
+                          });
+                        }
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: theme.colorScheme.outline.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedCalendar01,
+                            size: 18,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            _formatDateTime(selectedDateTime),
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                          ),
+                          const Spacer(),
+                          Text(
+                            'Change',
+                            style: TextStyle(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        Navigator.pop(ctx);
+                        final title = titleController.text.trim().isNotEmpty
+                            ? titleController.text.trim()
+                            : 'Reminder: ${notification.appName}';
+
+                        final success = await ref
+                            .read(reminderControllerProvider)
+                            .scheduleReminder(
+                              notification: notification,
+                              title: title,
+                              scheduledTime: selectedDateTime,
+                            );
+
+                        if (context.mounted) {
+                          if (success) {
+                            context.showSnackBar(
+                              existingReminder != null
+                                  ? 'Reminder updated for ${_formatDateTime(selectedDateTime)}'
+                                  : 'Reminder scheduled for ${_formatDateTime(selectedDateTime)}',
+                            );
+                          } else {
+                            context.showSnackBar('Failed to schedule reminder. Please check permissions.');
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: existingReminder != null ? AppColors.success : theme.colorScheme.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        existingReminder != null ? 'Update Reminder' : 'Confirm Reminder',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

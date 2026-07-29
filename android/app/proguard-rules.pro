@@ -10,6 +10,7 @@
 -keep class com.notifyvault.app.MainActivity { *; }
 -keep class com.notifyvault.app.service.** { *; }
 -keep class com.notifyvault.app.channel.** { *; }
+-keep class com.notifyvault.app.receiver.** { *; }
 -keep class com.notifyvault.app.database.** { *; }
 -keep class * extends android.app.Activity { *; }
 -keep class * extends android.app.Service { *; }
@@ -65,4 +66,8 @@
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }
+
+# Flutter Local Notifications Plugin Protection
+-keep class com.dexterous.flutterlocalnotifications.** { *; }
+-dontwarn com.dexterous.flutterlocalnotifications.**
 

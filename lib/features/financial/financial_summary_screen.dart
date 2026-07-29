@@ -20,33 +20,34 @@ class FinancialSummaryScreen extends ConsumerWidget {
     final days = ref.watch(statsTimeRangeProvider);
     final isDark = theme.brightness == Brightness.dark;
 
-    return FadingScaffold(
-      title: Text(
-        'Financial Tracker',
-        style: theme.textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.w800,
-          letterSpacing: -0.5,
-        ),
-      ),
-      actions: [
-        if (excludedIds.isNotEmpty)
-          IconButton(
-            tooltip: 'Restore ${excludedIds.length} hidden transaction(s)',
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedRefresh,
-              color: AppColors.error,
-              size: 20,
-            ),
-            onPressed: () {
-              ref.read(excludedFinancialTxIdsProvider.notifier).clearExclusions();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('All hidden transactions restored.'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          ScaffoldMessenger.of(context).clearSnackBars();
+        }
+      },
+      child: FadingScaffold(
+        title: Text(
+          'Financial Tracker',
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
           ),
+        ),
+        actions: [
+          if (excludedIds.isNotEmpty)
+            IconButton(
+              tooltip: 'Restore ${excludedIds.length} hidden transaction(s)',
+              icon: const HugeIcon(
+                icon: HugeIcons.strokeRoundedRefresh,
+                color: AppColors.error,
+                size: 20,
+              ),
+              onPressed: () {
+                ref.read(excludedFinancialTxIdsProvider.notifier).clearExclusions();
+                ScaffoldMessenger.of(context).clearSnackBars();
+              },
+            ),
         Padding(
           padding: const EdgeInsets.only(right: 16),
           child: Center(
@@ -74,8 +75,6 @@ class FinancialSummaryScreen extends ConsumerWidget {
             return _buildEmptyState(context, theme, ref, excludedIds.isNotEmpty);
           }
 
-          final currencyFormatter = NumberFormat.currency(symbol: summary.currencySymbol, decimalDigits: 0);
-
           final sortedMerchants = summary.spendByMerchant.entries.toList()
             ..sort((a, b) => b.value.compareTo(a.value));
 
@@ -89,12 +88,14 @@ class FinancialSummaryScreen extends ConsumerWidget {
             children: [
               // Summary Banner
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: _buildMetricCard(
                       context,
                       title: 'Total Spent',
-                      amount: currencyFormatter.format(summary.totalSpent),
+                      currencyAmounts: summary.safeSpentByCurrency,
+                      defaultSymbol: summary.currencySymbol,
                       icon: HugeIcons.strokeRoundedMoneySendSquare,
                       color: AppColors.error,
                       isDark: isDark,
@@ -105,7 +106,8 @@ class FinancialSummaryScreen extends ConsumerWidget {
                     child: _buildMetricCard(
                       context,
                       title: 'Total Received',
-                      amount: currencyFormatter.format(summary.totalReceived),
+                      currencyAmounts: summary.safeReceivedByCurrency,
+                      defaultSymbol: summary.currencySymbol,
                       icon: HugeIcons.strokeRoundedMoneyReceiveSquare,
                       color: AppColors.success,
                       isDark: isDark,
@@ -157,7 +159,7 @@ class FinancialSummaryScreen extends ConsumerWidget {
                                   ),
                                 ),
                                 Text(
-                                  currencyFormatter.format(entry.value),
+                                  _formatAmount(summary.currencySymbol, entry.value),
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: theme.colorScheme.onSurface,
@@ -300,7 +302,7 @@ class FinancialSummaryScreen extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Text(
-                                    '${isDebit ? '-' : '+'}${NumberFormat.currency(symbol: tx.currencySymbol, decimalDigits: 0).format(tx.amount)}',
+                                    '${isDebit ? '-' : '+'}${_formatAmount(tx.currencySymbol, tx.amount)}',
                                     style: TextStyle(
                                       color: color,
                                       fontWeight: FontWeight.bold,
@@ -343,35 +345,26 @@ class FinancialSummaryScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text('Error loading financial data: $err')),
       ),
-    );
+    ),
+  );
   }
 
   void _removeTransaction(BuildContext context, WidgetRef ref, FinancialTransaction tx) {
     ref.read(excludedFinancialTxIdsProvider.notifier).excludeTransaction(tx.id);
     ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Removed ${tx.merchant} transaction (${tx.currencySymbol}${tx.amount}) from summary.'),
-        action: SnackBarAction(
-          label: 'UNDO',
-          onPressed: () {
-            ref.read(excludedFinancialTxIdsProvider.notifier).includeTransaction(tx.id);
-          },
-        ),
-        duration: const Duration(seconds: 4),
-      ),
-    );
   }
 
   Widget _buildMetricCard(
     BuildContext context, {
     required String title,
-    required String amount,
+    required Map<String, double> currencyAmounts,
+    required String defaultSymbol,
     required List<List<dynamic>> icon,
     required Color color,
     required bool isDark,
   }) {
     final theme = Theme.of(context);
+    final entries = currencyAmounts.entries.toList();
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -401,17 +394,40 @@ class FinancialSummaryScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            amount,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              fontSize: 18,
-              color: theme.colorScheme.onSurface,
+          if (entries.isEmpty)
+            Text(
+              _formatAmount(defaultSymbol, 0),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                fontSize: 18,
+                color: theme.colorScheme.onSurface,
+              ),
+            )
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: entries.map((entry) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 2),
+                  child: Text(
+                    _formatAmount(entry.key, entry.value),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      fontSize: entries.length > 1 ? 15 : 18,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
-          ),
         ],
       ),
     );
+  }
+
+  String _formatAmount(String symbol, double amount) {
+    final formattedNum = NumberFormat('#,##0.##').format(amount);
+    return '$symbol$formattedNum';
   }
 
   Widget _buildEmptyState(BuildContext context, ThemeData theme, WidgetRef ref, bool hasExclusions) {
@@ -457,10 +473,12 @@ class FinancialSummaryScreen extends ConsumerWidget {
               OutlinedButton.icon(
                 onPressed: () {
                   ref.read(excludedFinancialTxIdsProvider.notifier).clearExclusions();
+                  ScaffoldMessenger.of(context).clearSnackBars();
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('All hidden transactions restored.'),
                       duration: Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
                     ),
                   );
                 },

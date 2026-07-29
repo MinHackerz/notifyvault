@@ -17,7 +17,9 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     final index = prefs.getInt(AppConfig.keyThemeMode) ?? 0;
-    state = ThemeMode.values[index];
+    Future.microtask(() {
+      state = ThemeMode.values[index];
+    });
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
@@ -45,7 +47,10 @@ class OnboardingNotifier extends Notifier<bool> {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    state = prefs.getBool(AppConfig.keyOnboardingComplete) ?? false;
+    final val = prefs.getBool(AppConfig.keyOnboardingComplete) ?? false;
+    Future.microtask(() {
+      state = val;
+    });
   }
 
   Future<void> complete() async {
@@ -68,7 +73,10 @@ class AppTourNotifier extends Notifier<bool> {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    state = prefs.getBool(AppConfig.keyAppTourComplete) ?? false;
+    final val = prefs.getBool(AppConfig.keyAppTourComplete) ?? false;
+    Future.microtask(() {
+      state = val;
+    });
   }
 
   Future<void> complete() async {
@@ -91,8 +99,11 @@ class RetentionPeriodNotifier extends Notifier<int> {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    state = prefs.getInt(AppConfig.keyRetentionPeriod) ??
+    final val = prefs.getInt(AppConfig.keyRetentionPeriod) ??
         AppConfig.freeRetentionDays;
+    Future.microtask(() {
+      state = val;
+    });
   }
 
   Future<void> setDays(int days) async {
@@ -122,7 +133,9 @@ class TtsPlaybackModeNotifier extends Notifier<TtsPlaybackMode> {
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     final index = prefs.getInt(AppConfig.keyTtsPlaybackMode) ?? 0;
-    state = TtsPlaybackMode.values[index];
+    Future.microtask(() {
+      state = TtsPlaybackMode.values[index];
+    });
   }
 
   Future<void> setMode(TtsPlaybackMode mode) async {
@@ -145,7 +158,10 @@ class SettingsTourNotifier extends Notifier<bool> {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    state = prefs.getBool(AppConfig.keySettingsTourComplete) ?? false;
+    final val = prefs.getBool(AppConfig.keySettingsTourComplete) ?? false;
+    Future.microtask(() {
+      state = val;
+    });
   }
 
   Future<void> complete() async {

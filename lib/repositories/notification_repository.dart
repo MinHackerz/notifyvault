@@ -163,6 +163,13 @@ class NotificationRepository {
     return result != null ? _toModel(result) : null;
   }
 
+  /// Watch a single notification by ID.
+  Stream<NotificationModel?> watchNotificationById(String id) {
+    return _db.notificationDao
+        .watchNotificationById(id)
+        .map((result) => result != null ? _toModel(result) : null);
+  }
+
   /// Search notifications.
   Future<List<NotificationModel>> searchNotifications(
     String query, {

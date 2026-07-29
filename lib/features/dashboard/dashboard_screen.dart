@@ -11,6 +11,7 @@ import '../../providers/notification_providers.dart';
 import '../../providers/permission_providers.dart';
 import '../../providers/app_management_providers.dart';
 import '../../providers/financial_providers.dart';
+import '../../providers/reminder_providers.dart';
 import '../../models/category_model.dart';
 import '../../models/notification_model.dart';
 import '../../core/widgets/category_chip.dart';
@@ -497,7 +498,115 @@ class _StatsGrid extends ConsumerWidget {
         ),
         const SizedBox(height: 10),
         const _DashboardFinancialCard(),
+        const _DashboardRemindersWidget(),
       ],
+    );
+  }
+}
+
+class _DashboardRemindersWidget extends ConsumerWidget {
+  const _DashboardRemindersWidget();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final remindersAsync = ref.watch(upcomingRemindersProvider);
+
+    return remindersAsync.when(
+      data: (reminders) {
+        if (reminders.isEmpty) return const SizedBox.shrink();
+
+        final nextReminder = reminders.first;
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Material(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(14),
+            child: InkWell(
+              onTap: () => context.push('/reminders'),
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: isDark ? AppColors.outlineDark : AppColors.outlineLight,
+                    width: 1.0,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Center(
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedAlarmClock,
+                          color: theme.colorScheme.primary,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                'Upcoming Reminder',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 11,
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                '${reminders.length} Active',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            nextReminder.title,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            'Scheduled for ${nextReminder.scheduledAt.day}/${nextReminder.scheduledAt.month} at ${DateFormat('jm').format(nextReminder.scheduledAt)}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }
@@ -510,7 +619,6 @@ class _DashboardFinancialCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final summaryAsync = ref.watch(financialSummaryProvider);
     final isDark = theme.brightness == Brightness.dark;
-    final currencyFormatter = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
 
     return summaryAsync.when(
       data: (summary) {
@@ -561,7 +669,7 @@ class _DashboardFinancialCard extends ConsumerWidget {
                           ),
                         ),
                         Text(
-                          currencyFormatter.format(summary.totalSpent),
+                          summary.formatSpentSummary(),
                           style: const TextStyle(
                             fontWeight: FontWeight.w800,
                             fontSize: 15,

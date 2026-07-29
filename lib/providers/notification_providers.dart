@@ -190,9 +190,9 @@ final categoryCoutsProvider = Provider<AsyncValue<Map<String, int>>>((ref) {
 
 /// Single notification detail provider.
 final notificationDetailProvider =
-    FutureProvider.family<NotificationModel?, String>((ref, id) {
+    StreamProvider.family<NotificationModel?, String>((ref, id) {
   final repo = ref.watch(notificationRepositoryProvider);
-  return repo.getNotificationById(id);
+  return repo.watchNotificationById(id);
 });
 
 /// Top apps provider.

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../models/notification_model.dart';
 import '../../models/category_model.dart';
@@ -7,9 +8,10 @@ import '../extensions/date_extensions.dart';
 import '../extensions/string_extensions.dart';
 import 'category_chip.dart';
 import '../../app/theme/app_colors.dart';
+import '../../providers/reminder_providers.dart';
 
 /// A premium flat notification list item with prominent app source display.
-class NotificationTile extends StatelessWidget {
+class NotificationTile extends ConsumerWidget {
   final NotificationModel notification;
   final VoidCallback? onTap;
   final VoidCallback? onFavoriteToggle;
@@ -28,10 +30,12 @@ class NotificationTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final category = CategoryModel.findById(notification.category);
     final isDark = theme.brightness == Brightness.dark;
+    final activeReminderIds = ref.watch(activeReminderNotificationIdsProvider);
+    final hasActiveReminder = activeReminderIds.contains(notification.id);
 
     final cardWidget = Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
@@ -198,7 +202,7 @@ class NotificationTile extends StatelessWidget {
                         ),
                       ],
 
-                      // Category chip + favorite
+                      // Category chip + reminder badge + sender
                       const SizedBox(height: 8),
                       Row(
                         children: [
@@ -206,6 +210,39 @@ class NotificationTile extends StatelessWidget {
                             category: category,
                             isSmall: true,
                           ),
+                          if (hasActiveReminder) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.success.withValues(alpha: isDark ? 0.2 : 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: AppColors.success.withValues(alpha: 0.4),
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  HugeIcon(
+                                    icon: HugeIcons.strokeRoundedAlarmClock,
+                                    size: 10,
+                                    color: AppColors.success,
+                                  ),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    'Reminder',
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: AppColors.success,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                           if (notification.senderName != null) ...[
                             const SizedBox(width: 8),
                             HugeIcon(
@@ -228,13 +265,6 @@ class NotificationTile extends StatelessWidget {
                               ),
                             ),
                           ],
-                          const Spacer(),
-                          if (notification.isFavorite)
-                            const HugeIcon(
-                              icon: HugeIcons.strokeRoundedStar,
-                              size: 14,
-                              color: Colors.amber,
-                            ),
                         ],
                       ),
                     ],

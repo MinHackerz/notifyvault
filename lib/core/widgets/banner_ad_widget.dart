@@ -5,6 +5,9 @@ import '../../app/theme/app_colors.dart';
 
 /// A reusable, safe AdMob Banner Ad loader widget.
 class BannerAdWidget extends StatefulWidget {
+  /// Toggle to temporarily show/hide ads. Set to true to hide ads.
+  static const bool hideAds = true;
+
   const BannerAdWidget({super.key});
 
   @override
@@ -18,7 +21,9 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
   @override
   void initState() {
     super.initState();
-    _loadAd();
+    if (!BannerAdWidget.hideAds) {
+      _loadAd();
+    }
   }
 
   void _loadAd() {
@@ -53,7 +58,7 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    if (!_isLoaded || _bannerAd == null) {
+    if (BannerAdWidget.hideAds || !_isLoaded || _bannerAd == null) {
       return const SizedBox.shrink();
     }
 

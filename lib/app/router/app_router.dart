@@ -20,7 +20,9 @@ import '../../features/settings/read_out_loud_apps_screen.dart';
 import '../../features/categories/category_screen.dart';
 import '../../features/statistics/statistics_screen.dart';
 import '../../features/financial/financial_summary_screen.dart';
+import '../../features/reminders/reminders_screen.dart';
 import '../../core/widgets/banner_ad_widget.dart';
+import '../../core/widgets/in_app_alarm_watcher.dart';
 import '../../providers/notification_providers.dart';
 import '../../providers/statistics_providers.dart';
 import '../theme/app_colors.dart';
@@ -40,11 +42,15 @@ class AppRoutes {
   static const readOutLoudApps = '/read-out-loud-apps';
   static const statistics = '/statistics';
   static const financialSummary = '/financial-summary';
+  static const reminders = '/reminders';
 }
+
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 /// GoRouter provider.
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: AppRoutes.splash,
     debugLogDiagnostics: false,
     routes: [
@@ -211,6 +217,27 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) {
           return CustomTransitionPage(
             child: const FinancialSummaryScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.05),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeOutCubic,
+                )),
+                child: FadeTransition(opacity: animation, child: child),
+              );
+            },
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.reminders,
+        pageBuilder: (context, state) {
+          return CustomTransitionPage(
+            child: const RemindersScreen(),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
               return SlideTransition(
@@ -421,8 +448,9 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      body: widget.child,
+    return InAppAlarmWatcher(
+      child: Scaffold(
+        body: widget.child,
       extendBody: false,
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
@@ -486,8 +514,9 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _NavItem extends StatelessWidget {

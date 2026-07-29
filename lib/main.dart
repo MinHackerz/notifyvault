@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'app/app.dart';
-import 'core/helpers/ad_helper.dart';
+import 'core/services/reminder_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,7 +12,6 @@ Future<void> main() async {
   // Initialize Google Mobile Ads SDK
   try {
     await MobileAds.instance.initialize();
-    AdHelper.preloadRewardedAd();
   } catch (e) {
     debugPrint('Google Mobile Ads initialization failed: $e');
   }
@@ -32,6 +31,14 @@ Future<void> main() async {
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
+
+  // Create the alarm channel and initialize the plugin before any UI can
+  // schedule, so cold starts and notification taps are handled.
+  try {
+    await ReminderService.instance.init();
+  } catch (e) {
+    debugPrint('ReminderService initialization failed: $e');
+  }
 
   // Initialize Firebase
   try {

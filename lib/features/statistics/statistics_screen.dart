@@ -5,7 +5,6 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import '../../app/theme/app_colors.dart';
 import '../../app/router/app_router.dart';
 import '../../providers/statistics_providers.dart';
@@ -705,8 +704,6 @@ class _FinancialTrackerCard extends ConsumerWidget {
     final summaryAsync = ref.watch(financialSummaryProvider);
     final isDark = theme.brightness == Brightness.dark;
 
-    final currencyFormatter = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
-
     return summaryAsync.when(
       data: (summary) {
         return Container(
@@ -806,7 +803,7 @@ class _FinancialTrackerCard extends ConsumerWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          currencyFormatter.format(summary.totalSpent),
+                          summary.formatSpentSummary(),
                           style: const TextStyle(
                             fontWeight: FontWeight.w800,
                             fontSize: 16,
@@ -835,7 +832,7 @@ class _FinancialTrackerCard extends ConsumerWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          currencyFormatter.format(summary.totalReceived),
+                          summary.formatReceivedSummary(),
                           style: const TextStyle(
                             fontWeight: FontWeight.w800,
                             fontSize: 16,

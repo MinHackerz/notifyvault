@@ -12,8 +12,6 @@ import '../../providers/notification_providers.dart';
 import '../../providers/permission_providers.dart';
 import '../../providers/app_management_providers.dart';
 import '../../core/widgets/section_header.dart';
-import '../../core/helpers/ad_helper.dart';
-
 import '../../core/widgets/fading_app_bar.dart';
 
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
@@ -209,10 +207,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 title: 'Theme',
                 subtitle: _themeModeLabel(themeMode),
                 iconColor: theme.colorScheme.primary,
-                onTap: () => _showAdAndProceed(
-                  context,
-                  () => _showThemeSelector(context, ref, themeMode),
-                ),
+                onTap: () => _showThemeSelector(context, ref, themeMode),
               ),
             ],
           ),
@@ -264,10 +259,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ? 'Unlimited (Premium)'
                     : '$retentionDays days',
                 iconColor: AppColors.warning,
-                onTap: () => _showAdAndProceed(
-                  context,
-                  () => _showRetentionSelector(context, ref, retentionDays),
-                ),
+                onTap: () => _showRetentionSelector(context, ref, retentionDays),
               ),
               _buildDivider(context),
               _SettingsTile(
@@ -276,10 +268,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 title: 'Read Out Loud',
                 subtitle: 'Select apps to announce notifications',
                 iconColor: AppColors.categoryWork,
-                onTap: () => _showAdAndProceed(
-                  context,
-                  () => context.push(AppRoutes.readOutLoudApps),
-                ),
+                onTap: () => context.push(AppRoutes.readOutLoudApps),
               ),
               _buildDivider(context),
               _SettingsTile(
@@ -288,13 +277,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 title: 'App Management',
                 subtitle: 'Priority, block & spam apps',
                 iconColor: AppColors.categorySocial,
-                onTap: () => _showAdAndProceed(
-                  context,
-                  () {
-                    ref.read(appManagementUnlockedProvider.notifier).unlock();
-                    context.push(AppRoutes.appManagement);
-                  },
-                ),
+                onTap: () {
+                  ref.read(appManagementUnlockedProvider.notifier).unlock();
+                  context.push(AppRoutes.appManagement);
+                },
               ),
             ],
           ),
@@ -758,19 +744,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       ],
     );
-  }
-
-  void _showAdAndProceed(BuildContext context, VoidCallback onProceed) {
-    if (AdHelper.isRewardedAdLoaded) {
-      AdHelper.showRewardedAd(
-        onAdClosed: onProceed,
-        onRewardEarned: () {},
-      );
-    } else {
-      // If ad not loaded, preload next and open content directly
-      AdHelper.preloadRewardedAd();
-      onProceed();
-    }
   }
 }
 

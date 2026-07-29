@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/helpers/financial_parser.dart';
 import 'notification_providers.dart';
@@ -12,6 +13,8 @@ class FinancialSummary {
   final int transactionCount;
   final List<FinancialTransaction> transactions;
   final Map<String, double> spendByMerchant;
+  final Map<String, double>? spentByCurrency;
+  final Map<String, double>? receivedByCurrency;
 
   const FinancialSummary({
     required this.totalSpent,
@@ -21,7 +24,38 @@ class FinancialSummary {
     required this.transactionCount,
     required this.transactions,
     required this.spendByMerchant,
+    this.spentByCurrency,
+    this.receivedByCurrency,
   });
+
+  Map<String, double> get safeSpentByCurrency => spentByCurrency ?? {currencySymbol: totalSpent};
+  Map<String, double> get safeReceivedByCurrency => receivedByCurrency ?? {currencySymbol: totalReceived};
+
+  String formatSpentSummary() {
+    final map = safeSpentByCurrency;
+    if (map.isEmpty) return '${currencySymbol}0';
+    final parts = <String>[];
+    map.forEach((symbol, amount) {
+      if (amount > 0) {
+        final formattedNum = NumberFormat('#,##0.##').format(amount);
+        parts.add('$symbol$formattedNum');
+      }
+    });
+    return parts.isNotEmpty ? parts.join('+') : '${currencySymbol}0';
+  }
+
+  String formatReceivedSummary() {
+    final map = safeReceivedByCurrency;
+    if (map.isEmpty) return '${currencySymbol}0';
+    final parts = <String>[];
+    map.forEach((symbol, amount) {
+      if (amount > 0) {
+        final formattedNum = NumberFormat('#,##0.##').format(amount);
+        parts.add('$symbol$formattedNum');
+      }
+    });
+    return parts.isNotEmpty ? parts.join('+') : '${currencySymbol}0';
+  }
 }
 
 class ExcludedFinancialTxNotifier extends Notifier<Set<String>> {
@@ -37,7 +71,9 @@ class ExcludedFinancialTxNotifier extends Notifier<Set<String>> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final list = prefs.getStringList(_key) ?? [];
-      state = list.toSet();
+      Future.microtask(() {
+        state = list.toSet();
+      });
     } catch (_) {}
   }
 
@@ -105,16 +141,21 @@ final financialSummaryProvider = Provider<AsyncValue<FinancialSummary>>((ref) {
   return txAsync.whenData((transactions) {
     double totalSpent = 0.0;
     double totalReceived = 0.0;
+    final spentByCurrency = <String, double>{};
+    final receivedByCurrency = <String, double>{};
     final spendByMerchant = <String, double>{};
     final currencyCounts = <String, int>{};
 
     for (final tx in transactions) {
-      currencyCounts[tx.currencySymbol] = (currencyCounts[tx.currencySymbol] ?? 0) + 1;
+      final symbol = tx.currencySymbol;
+      currencyCounts[symbol] = (currencyCounts[symbol] ?? 0) + 1;
       if (tx.type == TransactionType.debit) {
         totalSpent += tx.amount;
+        spentByCurrency[symbol] = (spentByCurrency[symbol] ?? 0.0) + tx.amount;
         spendByMerchant[tx.merchant] = (spendByMerchant[tx.merchant] ?? 0.0) + tx.amount;
       } else {
         totalReceived += tx.amount;
+        receivedByCurrency[symbol] = (receivedByCurrency[symbol] ?? 0.0) + tx.amount;
       }
     }
 
@@ -136,6 +177,8 @@ final financialSummaryProvider = Provider<AsyncValue<FinancialSummary>>((ref) {
       transactionCount: transactions.length,
       transactions: transactions,
       spendByMerchant: spendByMerchant,
+      spentByCurrency: spentByCurrency,
+      receivedByCurrency: receivedByCurrency,
     );
   });
 });
