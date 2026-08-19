@@ -1,131 +1,540 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy - NotifyVault</title>
+    <title>Privacy Policy - Recallr</title>
+    <meta name="description" content="Official Privacy Policy for Recallr Android application. Understand how Recallr handles, secures, and protects your notification data with a local-first privacy architecture.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Tailwind CSS for styling -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS for modern responsive styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
                         sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                        }
                     }
                 }
             }
         }
     </script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-700 font-sans min-h-screen selection:bg-purple-100 selection:text-purple-900">
+<body class="bg-slate-50 text-slate-700 font-sans min-h-screen selection:bg-brand-100 selection:text-brand-900 antialiased">
 
-    <div class="max-w-3xl mx-auto px-6 py-16">
-        <!-- Header -->
-        <header class="border-b border-slate-200 pb-8 mb-12 text-center md:text-left">
-            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Privacy Policy</h1>
-            <p class="text-purple-600 font-bold text-sm tracking-wider uppercase">NotifyVault</p>
-            <p class="text-slate-400 text-xs mt-2">Last Updated: July 12, 2026</p>
+    <!-- Top Navigation Bar -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white font-bold shadow-md shadow-brand-500/20">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                </div>
+                <div>
+                    <span class="font-extrabold text-slate-900 text-lg tracking-tight">Recallr</span>
+                    <span class="text-xs text-brand-600 font-bold block -mt-1">Privacy & Safety Center</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="https://github.com/MinHackerz/notifyvault" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-slate-600 hover:text-brand-600 transition flex items-center gap-1.5 bg-slate-100 hover:bg-brand-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+                    </svg>
+                    GitHub Repo
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Hero Header -->
+        <header class="text-center sm:text-left border-b border-slate-200 pb-8 mb-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-4">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Official Google Play Compliance Document
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">Privacy Policy</h1>
+            <p class="text-base text-slate-600 max-w-2xl">
+                This Privacy Policy explains how <strong>Recallr</strong> collects, processes, stores, and protects your information when you use our Android application.
+            </p>
+            <div class="flex flex-wrap items-center gap-y-2 gap-x-6 text-xs text-slate-500 mt-4 pt-4 border-t border-slate-100">
+                <div><strong class="text-slate-700">App Name:</strong> Recallr</div>
+                <div><strong class="text-slate-700">Package ID:</strong> <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-800 font-mono">com.notifyvault.app</code></div>
+                <div><strong class="text-slate-700">Developer:</strong> MinHackerz</div>
+                <div><strong class="text-slate-700">Last Updated:</strong> August 19, 2026</div>
+            </div>
         </header>
 
-        <!-- Content -->
-        <main class="space-y-10 leading-relaxed text-sm">
-            <!-- App Details Card -->
-            <section class="bg-white border border-slate-200 rounded-xl p-6 mb-8 shadow-sm">
-                <h2 class="text-lg font-bold text-slate-900 mb-4">Application Details</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <span class="text-slate-400 text-xs block uppercase tracking-wider">App Name</span>
-                        <span class="text-slate-800 font-semibold">NotifyVault</span>
+        <!-- Quick Summary Cards -->
+        <section class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:border-brand-500/30 transition">
+                <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold mb-3">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <h3 class="font-bold text-slate-900 text-sm mb-1">Local-First Storage</h3>
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    All captured notification logs, message bodies, and financial insights are stored locally on your device in a private SQLite database.
+                </p>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:border-brand-500/30 transition">
+                <div class="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center font-bold mb-3">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                </div>
+                <h3 class="font-bold text-slate-900 text-sm mb-1">Zero Cloud Tracking</h3>
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    We never upload, sell, or transmit your notification logs or private personal communications to remote servers or brokers.
+                </p>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:border-brand-500/30 transition">
+                <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold mb-3">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </div>
+                <h3 class="font-bold text-slate-900 text-sm mb-1">Full Data Deletion</h3>
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    You can purge notifications, set auto-cleanup retention rules, or wipe all records permanently at any time with a single tap.
+                </p>
+            </div>
+        </section>
+
+        <!-- Main Body -->
+        <main class="space-y-12 leading-relaxed text-sm text-slate-700">
+
+            <!-- Section 1: Overview -->
+            <section id="overview" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+                <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <span class="text-brand-600">1.</span> Introduction & Core Philosophy
+                </h2>
+                <p class="mb-3">
+                    Recallr ("we", "our", or "the App") is developed and maintained by <strong>MinHackerz</strong>. Recallr is designed to serve as an intelligent, secure, and privacy-preserving notification archive, reminder engine, and financial transaction manager for Android users.
+                </p>
+                <p>
+                    We believe your personal notifications contain sensitive, private information. Therefore, Recallr is engineered with a strict <strong>Local-First Architecture</strong>: your notification messages, senders, timestamps, and extracted records are processed and retained <em>strictly on your physical device</em>.
+                </p>
+            </section>
+
+            <!-- Section 2: Data Access & Collection -->
+            <section id="data-collection" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+                <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <span class="text-brand-600">2.</span> Information We Access, Process, and Store
+                </h2>
+
+                <div class="space-y-6">
+                    <!-- Notification Data -->
+                    <div class="border-l-4 border-brand-500 pl-4 py-1">
+                        <h3 class="font-bold text-slate-900 text-base mb-1">A. Notification Messages & Content (Sensitive Personal Data)</h3>
+                        <p class="text-slate-600 mb-2">
+                            To fulfill the core functionality of archiving and organizing notifications, Recallr uses Android's <code class="font-mono bg-slate-100 px-1 py-0.5 rounded text-xs">NotificationListenerService</code> to capture incoming notifications as they arrive.
+                        </p>
+                        <ul class="list-disc pl-5 space-y-1 text-slate-600 text-xs sm:text-sm">
+                            <li><strong>Data Processed:</strong> Notification title, body text, subtext, timestamp, sender/app identifier, and channel categories.</li>
+                            <li><strong>Purpose:</strong> Notification search, historical timeline view, category classification, smart reminders, and local financial tracking.</li>
+                            <li><strong>Storage:</strong> 100% saved locally on your device in a sandboxed SQLite/Drift database.</li>
+                            <li><strong>Sharing:</strong> <span class="font-bold text-emerald-600">Never transmitted to external servers, cloud databases, or third parties.</span></li>
+                        </ul>
                     </div>
-                    <div>
-                        <span class="text-slate-400 text-xs block uppercase tracking-wider">Package Name</span>
-                        <span class="text-slate-800 font-mono font-medium">com.notifyvault.app</span>
+
+                    <!-- Installed Applications -->
+                    <div class="border-l-4 border-indigo-500 pl-4 py-1">
+                        <h3 class="font-bold text-slate-900 text-base mb-1">B. Installed Applications & Package Identifiers (<code class="font-mono text-xs">QUERY_ALL_PACKAGES</code>)</h3>
+                        <p class="text-slate-600 mb-2">
+                            Recallr requires the <code class="font-mono bg-slate-100 px-1 py-0.5 rounded text-xs">QUERY_ALL_PACKAGES</code> permission to identify which applications post notifications.
+                        </p>
+                        <ul class="list-disc pl-5 space-y-1 text-slate-600 text-xs sm:text-sm">
+                            <li><strong>Purpose:</strong> Resolving application names and app icons next to notifications in the timeline, allowing users to customize notification capture filters (blocking unwanted apps), and grouping notifications by application.</li>
+                            <li><strong>Privacy Guarantee:</strong> Package queries are executed strictly on-device in real-time. We do not generate, upload, or monetize lists of your installed applications.</li>
+                        </ul>
                     </div>
-                    <div>
-                        <span class="text-slate-400 text-xs block uppercase tracking-wider">Architecture</span>
-                        <span class="text-slate-800 font-semibold">Local Storage Only</span>
+
+                    <!-- Financial Data -->
+                    <div class="border-l-4 border-emerald-500 pl-4 py-1">
+                        <h3 class="font-bold text-slate-900 text-base mb-1">C. Financial Transaction Analysis (Local Parser)</h3>
+                        <p class="text-slate-600 mb-2">
+                            Recallr includes an optional on-device financial insights engine that parses bank SMS and payment alerts (such as UPI, debit, credit notifications).
+                        </p>
+                        <ul class="list-disc pl-5 space-y-1 text-slate-600 text-xs sm:text-sm">
+                            <li><strong>Processing:</strong> Parsing runs completely locally using regular expressions and on-device text analysis.</li>
+                            <li><strong>Security:</strong> No account numbers, transaction amounts, or merchant names leave your device.</li>
+                        </ul>
                     </div>
-                    <div>
-                        <span class="text-slate-400 text-xs block uppercase tracking-wider">Cloud Server Sync</span>
-                        <span class="text-emerald-600 font-bold">Disabled (None)</span>
+
+                    <!-- User Account / Auth -->
+                    <div class="border-l-4 border-amber-500 pl-4 py-1">
+                        <h3 class="font-bold text-slate-900 text-base mb-1">D. User Account & Authentication (Optional)</h3>
+                        <p class="text-slate-600 mb-2">
+                            If you choose to sign in via Google Sign-In or Firebase Authentication:
+                        </p>
+                        <ul class="list-disc pl-5 space-y-1 text-slate-600 text-xs sm:text-sm">
+                            <li><strong>Data Collected:</strong> Email address, display name, profile avatar URL, and Firebase User ID.</li>
+                            <li><strong>Purpose:</strong> Managing your user profile and securing access to optional cloud features if enabled.</li>
+                            <li><strong>Opt-Out:</strong> Account registration is optional; all core notification management features operate fully offline without logging in.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Crashlytics & Diagnostics -->
+                    <div class="border-l-4 border-rose-500 pl-4 py-1">
+                        <h3 class="font-bold text-slate-900 text-base mb-1">E. Diagnostics & Crash Reporting</h3>
+                        <p class="text-slate-600 mb-2">
+                            We utilize <strong>Firebase Crashlytics</strong> and <strong>Firebase Analytics</strong> to monitor app stability and identify fatal bugs.
+                        </p>
+                        <ul class="list-disc pl-5 space-y-1 text-slate-600 text-xs sm:text-sm">
+                            <li><strong>Data Collected:</strong> Device hardware model, Android OS version, crash stack traces, app launch timestamps, and non-identifying aggregated metrics.</li>
+                            <li><strong>Exclusion:</strong> Crash reports do NOT include the contents or bodies of your private notifications.</li>
+                        </ul>
                     </div>
                 </div>
             </section>
 
-            <!-- Section 1 -->
-            <section>
-                <h3 class="text-xl font-bold text-slate-900 mb-3">1. Information Collection & Access</h3>
-                <p class="mb-4">
-                    NotifyVault uses the Android <strong>NotificationListenerService</strong> permission to capture and save incoming system notifications (such as Title, Text, Subtext, App Name, Package Name, and timestamp) directly into a local SQLite database on your device.
+            <!-- Section 3: Android Permissions -->
+            <section id="permissions" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+                <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <span class="text-brand-600">3.</span> Android Permissions & Justifications
+                </h2>
+                <p class="text-slate-600 mb-4">
+                    Recallr requests the following Android permissions to deliver core functionality. Each permission is strictly utilized as described:
                 </p>
-                <p class="font-medium text-slate-900 border-l-2 border-purple-500 pl-4 my-4">
-                    <strong>Zero-Data Sharing</strong>: All notification logs are stored strictly on your local device. We do not maintain cloud servers, and we never collect, upload, share, or transmit your database logs to any external systems or third parties.
-                </p>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                            <tr class="border-b border-slate-200 bg-slate-50 text-slate-900">
+                                <th class="py-3 px-3 font-bold">Permission</th>
+                                <th class="py-3 px-3 font-bold">Category</th>
+                                <th class="py-3 px-3 font-bold">Reason & Justification</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr>
+                                <td class="py-3 px-3 font-mono font-semibold text-slate-800">BIND_NOTIFICATION_LISTENER_SERVICE</td>
+                                <td class="py-3 px-3"><span class="badge bg-purple-100 text-purple-700">Core Service</span></td>
+                                <td class="py-3 px-3 text-slate-600">Required to capture incoming system notifications and save them into the local database history.</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-3 font-mono font-semibold text-slate-800">QUERY_ALL_PACKAGES</td>
+                                <td class="py-3 px-3"><span class="badge bg-indigo-100 text-indigo-700">App Visibility</span></td>
+                                <td class="py-3 px-3 text-slate-600">Required to map package names to app icons and names, and enable per-app notification capture blocking rules.</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-3 font-mono font-semibold text-slate-800">POST_NOTIFICATIONS</td>
+                                <td class="py-3 px-3"><span class="badge bg-blue-100 text-blue-700">UI / Alerts</span></td>
+                                <td class="py-3 px-3 text-slate-600">Allows Recallr to post status notices, service health indicators, and scheduled reminder alerts.</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-3 font-mono font-semibold text-slate-800">SCHEDULE_EXACT_ALARM / USE_EXACT_ALARM</td>
+                                <td class="py-3 px-3"><span class="badge bg-amber-100 text-amber-700">Reminders</span></td>
+                                <td class="py-3 px-3 text-slate-600">Required for the native alarm clock engine to ring user-scheduled notification reminders at the precise second requested.</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-3 font-mono font-semibold text-slate-800">RECEIVE_BOOT_COMPLETED</td>
+                                <td class="py-3 px-3"><span class="badge bg-slate-100 text-slate-700">System</span></td>
+                                <td class="py-3 px-3 text-slate-600">Reschedules active reminder alarms and reinitializes notification listeners after the device restarts.</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-3 font-mono font-semibold text-slate-800">USE_FULL_SCREEN_INTENT</td>
+                                <td class="py-3 px-3"><span class="badge bg-rose-100 text-rose-700">Alarm UI</span></td>
+                                <td class="py-3 px-3 text-slate-600">Displays the full-screen ringing alarm banner when a reminder fires while the device screen is locked.</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-3 font-mono font-semibold text-slate-800">REQUEST_IGNORE_BATTERY_OPTIMIZATIONS</td>
+                                <td class="py-3 px-3"><span class="badge bg-emerald-100 text-emerald-700">Reliability</span></td>
+                                <td class="py-3 px-3 text-slate-600">Prevents OEM battery killers (MIUI, ColorOS, OneUI) from killing background notification capture listeners.</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-3 font-mono font-semibold text-slate-800">INTERNET</td>
+                                <td class="py-3 px-3"><span class="badge bg-slate-100 text-slate-700">Network</span></td>
+                                <td class="py-3 px-3 text-slate-600">Used strictly for AdMob banner ads, Firebase Crashlytics error logging, and optional Firebase authentication.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </section>
 
-            <!-- Section 2 -->
-            <section>
-                <h3 class="text-xl font-bold text-slate-900 mb-3">2. Advertisements</h3>
-                <p class="mb-4">
-                    To support ongoing development, NotifyVault displays third-party advertisements using the <strong>Google Mobile Ads SDK (AdMob)</strong>.
+            <!-- Section 4: Third-Party SDKs -->
+            <section id="third-parties" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+                <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <span class="text-brand-600">4.</span> Third-Party Services & SDK Disclosures
+                </h2>
+                <p class="text-slate-600 mb-4">
+                    Recallr integrates with selected third-party SDKs to facilitate advertising, authentication, and application stability. These services operate under their respective privacy policies:
                 </p>
-                <p class="mb-4">
-                    Google AdMob may collect and process device advertising identifiers (such as the Android Ad ID) and location metrics to serve personalized or non-personalized banner ads. The collection and usage of this data are governed by Google's Privacy Policy.
-                </p>
-                <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-purple-600 hover:underline font-semibold mt-2">
-                    Learn how Google uses your data &rarr;
-                </a>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-bold text-slate-900">Google Mobile Ads (AdMob)</h4>
+                            <span class="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded">Ads</span>
+                        </div>
+                        <p class="text-xs text-slate-600 mb-3">
+                            AdMob serves banner and native advertisements. It may collect and process Advertising IDs (AAID), coarse IP locations, and interaction logs.
+                        </p>
+                        <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-brand-600 hover:underline inline-flex items-center gap-1">
+                            Google Ads Privacy Policy &rarr;
+                        </a>
+                    </div>
+
+                    <div class="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-bold text-slate-900">Google Firebase</h4>
+                            <span class="text-xs bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded">Crash & Auth</span>
+                        </div>
+                        <p class="text-xs text-slate-600 mb-3">
+                            Firebase Crashlytics, Analytics, and Auth manage optional sign-in, anonymously track crash reports, and diagnose performance regressions.
+                        </p>
+                        <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-brand-600 hover:underline inline-flex items-center gap-1">
+                            Firebase Privacy & Security &rarr;
+                        </a>
+                    </div>
+
+                    <div class="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-bold text-slate-900">Google Play Services</h4>
+                            <span class="text-xs bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded">System Services</span>
+                        </div>
+                        <p class="text-xs text-slate-600 mb-3">
+                            Provides system runtime dependencies, secure auth tokens, and Play Store licensing verification.
+                        </p>
+                        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-brand-600 hover:underline inline-flex items-center gap-1">
+                            Google Privacy Policy &rarr;
+                        </a>
+                    </div>
+
+                    <div class="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-bold text-slate-900">GitHub (Open Source)</h4>
+                            <span class="text-xs bg-slate-200 text-slate-800 font-bold px-2 py-0.5 rounded">Repository</span>
+                        </div>
+                        <p class="text-xs text-slate-600 mb-3">
+                            The source repository, issue tracking, and documentation hosting are managed on GitHub under MinHackerz.
+                        </p>
+                        <a href="https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-brand-600 hover:underline inline-flex items-center gap-1">
+                            GitHub Privacy Statement &rarr;
+                        </a>
+                    </div>
+                </div>
             </section>
 
-            <!-- Section 3 -->
-            <section>
-                <h3 class="text-xl font-bold text-slate-900 mb-3">3. Data Retention and Deletion</h3>
-                <p class="mb-4">
-                    Because your data is stored locally, you are in complete control of its lifecycle:
+            <!-- Section 5: Data Retention & Automatic Pruning -->
+            <section id="retention" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+                <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <span class="text-brand-600">5.</span> Data Retention & Automatic Pruning
+                </h2>
+                <p class="text-slate-600 mb-3">
+                    You maintain complete authority over how long your notification data is retained on your device:
                 </p>
-                <ul class="list-disc pl-6 space-y-2 mb-4">
-                    <li><strong>Retention Settings</strong>: You can configure automatic database cleanups (e.g. automatically purge messages older than 7 days) inside the Settings screen.</li>
-                    <li><strong>Manual Wipe</strong>: You can erase your entire notification history database instantly by tapping the <em>"Clear Database"</em> button in the Settings menu.</li>
-                    <li><strong>App Uninstall</strong>: Uninstalling the NotifyVault application from your Android device immediately deletes the entire SQLite database file and all stored logs from your disk permanently.</li>
+                <ul class="list-disc pl-5 space-y-2 text-slate-600">
+                    <li>
+                        <strong>Configurable Retention Windows:</strong> Through the Settings menu, you can configure automatic database retention pruning (e.g. automatically delete notifications older than 7 days, 15 days, or 30 days).
+                    </li>
+                    <li>
+                        <strong>Dual-Layer Background Pruning:</strong> Automatic cleanup runs periodically in the background to purge expired records without user intervention, minimizing storage usage.
+                    </li>
+                    <li>
+                        <strong>Pinned / Bookmarked Notifications:</strong> Notifications marked as favorites or saved to custom vaults are protected from automatic deletion until you manually remove them.
+                    </li>
                 </ul>
             </section>
 
-            <!-- Section 4 -->
-            <section>
-                <h3 class="text-xl font-bold text-slate-900 mb-3">4. Security</h3>
-                <p>
-                    Since your database is offline and stored locally, it is protected by Android’s standard sandboxing architecture. No other applications on your device can access NotifyVault's private database directory.
+            <!-- Section 6: Data Deletion & Account Deletion (Google Play Compliance) -->
+            <section id="deletion" class="bg-gradient-to-br from-brand-50/50 to-white rounded-2xl border-2 border-brand-200 p-6 sm:p-8 shadow-sm">
+                <div class="flex items-center gap-2 text-brand-700 font-bold text-xs uppercase tracking-wider mb-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    Google Play Data Deletion Compliance
+                </div>
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">6. Data Deletion & Account Deletion Instructions</h2>
+                <p class="text-slate-700 mb-6">
+                    In compliance with Google Play's Data Safety and User Data policies, Recallr provides clear mechanisms for users to delete their personal data and accounts:
+                </p>
+
+                <div class="space-y-4">
+                    <!-- Method 1: In-App Clear -->
+                    <div class="bg-white rounded-xl border border-slate-200 p-4">
+                        <div class="flex items-start gap-3">
+                            <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-xs flex-shrink-0 mt-0.5">1</span>
+                            <div>
+                                <h4 class="font-bold text-slate-900 mb-1">Instant In-App Data Wipe</h4>
+                                <p class="text-xs text-slate-600 mb-2">
+                                    You can permanently wipe all notification logs, cached application icons, and statistics directly inside the app:
+                                </p>
+                                <ol class="list-decimal pl-4 space-y-1 text-xs text-slate-600">
+                                    <li>Open <strong>Recallr</strong> &rarr; Navigate to <strong>Settings</strong>.</li>
+                                    <li>Scroll down to the <strong>Data Management</strong> section.</li>
+                                    <li>Tap <strong>"Clear All Data"</strong> and confirm the prompt.</li>
+                                    <li>All local SQLite database files, logs, and cached assets are deleted permanently and immediately.</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Method 2: App Uninstallation -->
+                    <div class="bg-white rounded-xl border border-slate-200 p-4">
+                        <div class="flex items-start gap-3">
+                            <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-xs flex-shrink-0 mt-0.5">2</span>
+                            <div>
+                                <h4 class="font-bold text-slate-900 mb-1">App Uninstallation</h4>
+                                <p class="text-xs text-slate-600">
+                                    Because Recallr stores your database in Android’s protected app sandbox, uninstalling Recallr from your device immediately and irreversibly deletes the entire SQLite database file, cached images, and local preferences from disk.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Method 3: Account & Cloud Deletion Request -->
+                    <div class="bg-white rounded-xl border border-slate-200 p-4">
+                        <div class="flex items-start gap-3">
+                            <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-xs flex-shrink-0 mt-0.5">3</span>
+                            <div>
+                                <h4 class="font-bold text-slate-900 mb-1">Firebase Account & Remote Data Deletion Request</h4>
+                                <p class="text-xs text-slate-600 mb-2">
+                                    If you registered with Firebase Authentication or have inquiries regarding account deletion:
+                                </p>
+                                <ul class="list-disc pl-4 space-y-1 text-xs text-slate-600 mb-3">
+                                    <li>You may tap <strong>"Sign Out & Delete Account"</strong> inside the App Profile screen.</li>
+                                    <li>Or, send an email to <a href="mailto:minhaj99mhq@gmail.com?subject=Recallr%20Account%20and%20Data%20Deletion%20Request" class="text-brand-600 font-bold underline">minhaj99mhq@gmail.com</a> with the subject <em>"Recallr Account and Data Deletion Request"</em>.</li>
+                                    <li>We will process and verify your request within <strong>30 business days</strong>, deleting all associated authentication tokens and user records from our Firebase database.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 7: Security Practices -->
+            <section id="security" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+                <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <span class="text-brand-600">7.</span> Security & Storage Architecture
+                </h2>
+                <p class="text-slate-600 mb-3">
+                    We implement industry-standard technical security practices to safeguard your data:
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-slate-600">
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <strong class="text-slate-900 block mb-1">Android Sandboxing</strong>
+                        Your SQLite notification database is stored within Recallr's private app sandbox. Other apps installed on your phone cannot read or access Recallr's files.
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <strong class="text-slate-900 block mb-1">Encrypted Keystore Storage</strong>
+                        Sensitive settings and preferences use Android Keystore backed hardware encryption via <code class="font-mono text-xs">flutter_secure_storage</code>.
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <strong class="text-slate-900 block mb-1">TLS / HTTPS Encryption</strong>
+                        All outbound network communications (AdMob, Firebase error logs, Auth) utilize strict TLS/HTTPS encryption in transit.
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <strong class="text-slate-900 block mb-1">No Remote Notification Storage</strong>
+                        Notification logs and messages are never transmitted to external cloud servers.
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 8: Children's Privacy -->
+            <section id="children" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+                <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <span class="text-brand-600">8.</span> Children's Privacy (COPPA & GDPR-K)
+                </h2>
+                <p class="text-slate-600 mb-3">
+                    Recallr is not intended for or directed at children under the age of 13 (or under 16 for residents of the European Economic Area / UK). We do not knowingly collect, solicit, or maintain personal information from children.
+                </p>
+                <p class="text-slate-600">
+                    If you are a parent or guardian and become aware that your child has provided us with personal information without parental consent, please contact us at <a href="mailto:minhaj99mhq@gmail.com" class="text-brand-600 font-semibold underline">minhaj99mhq@gmail.com</a>. We will immediately purge all related data from our systems.
                 </p>
             </section>
 
-            <!-- Section 5 -->
-            <section>
-                <h3 class="text-xl font-bold text-slate-900 mb-3">5. Changes to This Privacy Policy</h3>
-                <p>
-                    We may update our Privacy Policy from time to time. We will notify you of any changes by posting the updated Privacy Policy page here. You are advised to review this page periodically for any modifications.
+            <!-- Section 9: International Users & Privacy Rights -->
+            <section id="rights" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+                <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <span class="text-brand-600">9.</span> Your Privacy Rights (GDPR & CCPA/CPRA)
+                </h2>
+                <p class="text-slate-600 mb-3">
+                    Depending on your geographic location, you may have specific statutory rights under data protection laws (such as GDPR in Europe or CCPA/CPRA in California):
+                </p>
+                <ul class="list-disc pl-5 space-y-1 text-slate-600 text-xs sm:text-sm mb-4">
+                    <li><strong>Right of Access:</strong> You can view all stored notification records directly inside the App's UI.</li>
+                    <li><strong>Right to Rectification:</strong> You can edit categories, rename tags, or adjust preferences at any time.</li>
+                    <li><strong>Right to Erasure ("Right to Be Forgotten"):</strong> You can wipe the local database or request deletion of your account.</li>
+                    <li><strong>Right to Data Portability:</strong> You can export your notification history and settings in standard formats.</li>
+                    <li><strong>Right to Non-Discrimination:</strong> We will never discriminate against you for exercising any of your privacy rights.</li>
+                </ul>
+            </section>
+
+            <!-- Section 10: Changes to Policy -->
+            <section id="changes" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+                <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <span class="text-brand-600">10.</span> Changes to This Privacy Policy
+                </h2>
+                <p class="text-slate-600 mb-2">
+                    We may periodically update this Privacy Policy to reflect new app features, legal obligations, or Google Play Developer Policy amendments.
+                </p>
+                <p class="text-slate-600">
+                    When changes occur, we will update the <strong>"Last Updated"</strong> date at the top of this document. We encourage you to review this page periodically. Continued use of Recallr after changes are published constitutes your acceptance of the revised terms.
                 </p>
             </section>
 
-            <!-- Section 6 -->
-            <section class="border-t border-slate-200 pt-8 mt-12">
-                <h3 class="text-xl font-bold text-slate-900 mb-3">6. Contact Us</h3>
-                <p class="mb-4">
-                    If you have any questions or feedback regarding this Privacy Policy or your data usage inside NotifyVault, feel free to open a ticket or contact us directly on GitHub:
+            <!-- Section 11: Contact Information -->
+            <section id="contact" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+                <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <span class="text-brand-600">11.</span> Developer & Contact Information
+                </h2>
+                <p class="text-slate-600 mb-4">
+                    If you have any questions, concerns, feedback, or data deletion inquiries regarding Recallr, please reach out to us:
                 </p>
-                <a href="https://github.com/MinHackerz/notifyvault" target="_blank" rel="noopener noreferrer" class="text-purple-600 hover:underline font-semibold">
-                    github.com/MinHackerz/notifyvault
-                </a>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-brand-100 text-brand-600 flex items-center justify-center font-bold">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206"/></svg>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-400 block uppercase font-bold">Support Email</span>
+                            <a href="mailto:minhaj99mhq@gmail.com" class="text-brand-600 font-bold hover:underline">minhaj99mhq@gmail.com</a>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 pt-2 border-t border-slate-200/60">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-400 block uppercase font-bold">GitHub Repository</span>
+                            <a href="https://github.com/MinHackerz/notifyvault" target="_blank" rel="noopener noreferrer" class="text-brand-600 font-bold hover:underline">github.com/MinHackerz/notifyvault</a>
+                        </div>
+                    </div>
+                </div>
             </section>
         </main>
 
         <!-- Footer -->
-        <footer class="border-t border-slate-200 text-center text-slate-400 text-xs mt-16 pt-8">
-            &copy; 2026 NotifyVault. Created and maintained by MinHackerz.
+        <footer class="border-t border-slate-200 text-center text-slate-400 text-xs mt-16 pt-8 space-y-2">
+            <p>&copy; 2026 <strong>Recallr</strong>. Developed and maintained by <strong>MinHackerz</strong>.</p>
+            <p class="text-slate-400">All rights reserved. Hosted on GitHub Pages.</p>
         </footer>
     </div>
 
