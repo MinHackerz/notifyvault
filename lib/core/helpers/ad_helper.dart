@@ -20,7 +20,8 @@ class AdHelper {
   static const String _androidInterstitial =
       'ca-app-pub-6501509019152141/8074838587';
   static const String _androidAppOpen = 'ca-app-pub-6501509019152141/8703937707';
-  static const String _androidRewarded = '';
+  static const String _androidRewarded =
+      'ca-app-pub-6501509019152141/1693088057';
 
   // ─── Google test unit IDs ───
   static const Map<AdFormat, String> _androidTest = {
