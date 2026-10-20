@@ -13,6 +13,7 @@ import '../../providers/permission_providers.dart';
 import '../../providers/app_management_providers.dart';
 import '../../core/widgets/section_header.dart';
 import '../../core/widgets/fading_app_bar.dart';
+import '../../core/services/ads_service.dart';
 
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
@@ -32,6 +33,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final GlobalKey _keyReadOutLoud = GlobalKey();
   final GlobalKey _keyAppManagement = GlobalKey();
   final GlobalKey _keyData = GlobalKey();
+  final _ads = AdsService.instance;
 
   @override
   void initState() {
@@ -328,6 +330,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ],
           ),
 
+          // ── Ads & Privacy ── (shown only when there is something to offer)
+          ListenableBuilder(
+            listenable: Listenable.merge([
+              _ads.adFree,
+              _ads.rewardedAvailable,
+              _ads.privacyOptionsRequired,
+            ]),
+            builder: (context, _) => _buildAdsSection(context),
+          ),
+
           const SizedBox(height: 32),
 
           // ── App Info Footer ──
@@ -367,6 +379,71 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildAdsSection(BuildContext context) {
+    final showAdFree = _ads.adFree.value || _ads.rewardedAvailable.value;
+    final showPrivacy = _ads.privacyOptionsRequired.value;
+    if (!showAdFree && !showPrivacy) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 16),
+        const _SectionHeader(index: '05', title: 'Ads & Privacy'),
+        const SizedBox(height: 8),
+        _SettingsCard(
+          children: [
+            if (showAdFree)
+              _SettingsTile(
+                icon: HugeIcons.strokeRoundedPlayCircle,
+                title: _ads.adFree.value
+                    ? 'Ad-free is active'
+                    : 'Go ad-free for 24 hours',
+                subtitle: _ads.adFree.value
+                    ? 'Thanks for supporting ${AppConfig.appName}!'
+                    : 'Watch one short video to hide all ads',
+                iconColor: AppColors.success,
+                onTap: _ads.adFree.value ? _showAdFreeStatus : _watchForAdFree,
+              ),
+            if (showAdFree && showPrivacy) _buildDivider(context),
+            if (showPrivacy)
+              _SettingsTile(
+                icon: HugeIcons.strokeRoundedUserShield01,
+                title: 'Privacy Choices',
+                subtitle: 'Manage your ad consent',
+                iconColor: AppColors.categoryWork,
+                onTap: _ads.showPrivacyOptions,
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> _watchForAdFree() async {
+    final earned = await _ads.showRewardedForAdFree();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          earned
+              ? 'Ads hidden for the next 24 hours'
+              : 'Video not finished, so ads are still on',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showAdFreeStatus() async {
+    final until = await _ads.adFreeUntil();
+    if (!mounted || until == null) return;
+    final left = until.difference(DateTime.now());
+    final hours = left.inHours;
+    final minutes = left.inMinutes.remainder(60);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Ad-free for another ${hours}h ${minutes}m')),
     );
   }
 

@@ -1,20 +1,14 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'app/app.dart';
+import 'core/services/ads_service.dart';
 import 'core/services/reminder_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize Google Mobile Ads SDK
-  try {
-    await MobileAds.instance.initialize();
-  } catch (e) {
-    debugPrint('Google Mobile Ads initialization failed: $e');
-  }
 
   // Lock orientation to portrait
   await SystemChrome.setPreferredOrientations([
@@ -52,7 +46,11 @@ Future<void> main() async {
 
   runApp(
     const ProviderScope(
-      child: NotifyVaultApp(),
+      child: RecallrApp(),
     ),
   );
+
+  // Ask for ad consent (UMP) where required, then start the ads SDK. Runs
+  // after the first frame so the consent form has a window to show over.
+  unawaited(AdsService.instance.initialize());
 }

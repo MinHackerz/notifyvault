@@ -9,11 +9,15 @@ import '../../core/widgets/shimmer_loading.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/section_header.dart';
 import '../../core/widgets/fading_app_bar.dart';
+import '../../core/widgets/native_ad_card.dart';
 import '../../models/notification_model.dart';
 import '../../models/category_model.dart';
 
 class TimelineScreen extends ConsumerWidget {
   const TimelineScreen({super.key});
+
+  static const _firstAdAfter = 5;
+  static const _adInterval = 25;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -68,6 +72,9 @@ class TimelineScreen extends ConsumerWidget {
 
           // Flatten grouped map into a single list for high-performance scrolling
           final flatItems = <_TimelineItem>[];
+          // Native ad after the 5th notification, then every 25 after that.
+          final adIndexByKey = <Key, int>{};
+          var notificationCount = 0;
           for (final entry in grouped.entries) {
             flatItems.add(_TimelineItem(
               isHeader: true,
@@ -80,6 +87,13 @@ class TimelineScreen extends ConsumerWidget {
                 isHeader: false,
                 notification: notification,
               ));
+              notificationCount++;
+              if (notificationCount >= _firstAdAfter &&
+                  (notificationCount - _firstAdAfter) % _adInterval == 0) {
+                final key = ValueKey('timeline-ad-${adIndexByKey.length}');
+                adIndexByKey[key] = flatItems.length;
+                flatItems.add(_TimelineItem(isHeader: false, adKey: key));
+              }
             }
           }
 
@@ -98,6 +112,9 @@ class TimelineScreen extends ConsumerWidget {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final item = flatItems[index];
+                      if (item.adKey != null) {
+                        return NativeAdCard(key: item.adKey);
+                      }
                       if (item.isHeader) {
                         return _GroupHeader(
                           title: item.headerTitle!,
@@ -134,6 +151,9 @@ class TimelineScreen extends ConsumerWidget {
                       );
                     },
                     childCount: flatItems.length,
+                    // Lets loaded ads keep their slot when new notifications
+                    // shift the list, instead of reloading.
+                    findChildIndexCallback: (key) => adIndexByKey[key],
                   ),
                 ),
 
@@ -581,6 +601,7 @@ class _TimelineItem {
   final int? headerCount;
   final List<NotificationModel>? groupNotifications;
   final NotificationModel? notification;
+  final Key? adKey;
 
   _TimelineItem({
     required this.isHeader,
@@ -588,6 +609,7 @@ class _TimelineItem {
     this.headerCount,
     this.groupNotifications,
     this.notification,
+    this.adKey,
   });
 }
 

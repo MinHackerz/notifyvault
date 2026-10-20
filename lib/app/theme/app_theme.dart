@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
-/// NotifyVault Material 3 theme configuration — flat professional edition.
+/// Recallr Material 3 theme configuration — flat professional edition.
 class AppTheme {
   AppTheme._();
 

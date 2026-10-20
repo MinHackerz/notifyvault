@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart' show TemplateType;
 import '../../app/theme/app_colors.dart';
 import '../../app/router/app_router.dart';
 import '../../providers/statistics_providers.dart';
@@ -14,6 +15,7 @@ import '../../providers/distraction_providers.dart';
 import '../../providers/financial_providers.dart';
 import '../../core/widgets/section_header.dart';
 import '../../core/widgets/fading_app_bar.dart';
+import '../../core/widgets/native_ad_card.dart';
 
 class StatisticsScreen extends ConsumerWidget {
   const StatisticsScreen({super.key});
@@ -97,6 +99,12 @@ class StatisticsScreen extends ConsumerWidget {
             const _DistractionAnalyticsSection(),
 
             const SizedBox(height: 20),
+
+            // Sponsored card between sections
+            const NativeAdCard(
+              templateType: TemplateType.medium,
+              margin: EdgeInsets.only(bottom: 20),
+            ),
 
             // Top 5 Apps Chart
             const SectionHeader(index: '04', title: 'Top 5 Apps'),

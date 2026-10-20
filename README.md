@@ -1,4 +1,4 @@
-# NotifyVault 🛡️
+# Recallr 🛡️
 
 A secure, privacy-focused notification history capture, management, and categorization assistant. Designed with premium visual aesthetics and optimized for smooth, lightning-fast performance.
 

@@ -461,7 +461,7 @@ class FinancialSummaryScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'NotifyVault automatically parses bank alerts, UPI payments, and debit/credit SMS notifications locally when they arrive.',
+              'Recallr automatically parses bank alerts, UPI payments, and debit/credit SMS notifications locally when they arrive.',
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,

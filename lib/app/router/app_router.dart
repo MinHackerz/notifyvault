@@ -22,6 +22,7 @@ import '../../features/statistics/statistics_screen.dart';
 import '../../features/financial/financial_summary_screen.dart';
 import '../../features/reminders/reminders_screen.dart';
 import '../../core/widgets/banner_ad_widget.dart';
+import '../../core/services/ads_service.dart';
 import '../../core/widgets/in_app_alarm_watcher.dart';
 import '../../providers/notification_providers.dart';
 import '../../providers/statistics_providers.dart';
@@ -52,6 +53,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: AppRoutes.splash,
+    observers: [AdNavigatorObserver()],
     debugLogDiagnostics: false,
     routes: [
       GoRoute(
@@ -282,6 +284,7 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    AdsService.instance.mainShellMounted();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndShowTour();
     });
@@ -289,6 +292,7 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
 
   @override
   void dispose() {
+    AdsService.instance.mainShellUnmounted();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

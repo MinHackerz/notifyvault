@@ -10,9 +10,9 @@ import '../providers/notification_providers.dart';
 /// Guards the one-shot startup permission prompt against widget rebuilds.
 bool _reminderPermissionsRequested = false;
 
-/// Root widget for NotifyVault.
-class NotifyVaultApp extends ConsumerWidget {
-  const NotifyVaultApp({super.key});
+/// Root widget for Recallr.
+class RecallrApp extends ConsumerWidget {
+  const RecallrApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,7 +40,7 @@ class NotifyVaultApp extends ConsumerWidget {
     });
 
     return MaterialApp.router(
-      title: 'NotifyVault',
+      title: 'Recallr',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,

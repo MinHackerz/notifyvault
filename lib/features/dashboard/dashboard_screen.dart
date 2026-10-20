@@ -19,6 +19,7 @@ import '../../core/widgets/notification_tile.dart';
 import '../../core/widgets/shimmer_loading.dart';
 import '../../core/widgets/section_header.dart';
 import '../../core/widgets/fading_app_bar.dart';
+import '../../core/widgets/native_ad_card.dart';
 
 final dashboardTabProvider = NotifierProvider<DashboardTabNotifier, String>(DashboardTabNotifier.new);
 
@@ -249,6 +250,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               child: _CategoryQuickAccess(),
             ),
 
+            // Sponsored card between sections, never inside the activity list
+            const SliverToBoxAdapter(
+              child: NativeAdCard(margin: EdgeInsets.fromLTRB(16, 12, 16, 0)),
+            ),
+
             // Section 3: Recent Activity
             SliverToBoxAdapter(
               child: SectionHeader(
@@ -432,7 +438,7 @@ class _StatsGrid extends ConsumerWidget {
                 icon: HugeIcons.strokeRoundedFlash,
                 title: 'Today',
                 value: todayCount.when(
-                  data: (v) => '$v',
+                  data: _compactCount,
                   loading: () => '·',
                   error: (_, _) => '0',
                 ),
@@ -448,7 +454,7 @@ class _StatsGrid extends ConsumerWidget {
                 icon: HugeIcons.strokeRoundedNotification03,
                 title: 'Unread',
                 value: unreadCount.when(
-                  data: (v) => '$v',
+                  data: _compactCount,
                   loading: () => '·',
                   error: (_, _) => '0',
                 ),
@@ -468,7 +474,7 @@ class _StatsGrid extends ConsumerWidget {
                 icon: HugeIcons.strokeRoundedGrid,
                 title: 'Active Apps',
                 value: activeApps.when(
-                  data: (v) => '$v',
+                  data: _compactCount,
                   loading: () => '·',
                   error: (_, _) => '0',
                 ),
@@ -484,7 +490,7 @@ class _StatsGrid extends ConsumerWidget {
                 icon: HugeIcons.strokeRoundedArchive01,
                 title: 'Total Saved',
                 value: totalCount.when(
-                  data: (v) => '$v',
+                  data: _compactCount,
                   loading: () => '·',
                   error: (_, _) => '0',
                 ),
@@ -708,6 +714,26 @@ class _DashboardFinancialCard extends ConsumerWidget {
       error: (_, _) => const SizedBox.shrink(),
     );
   }
+}
+
+String _compactCount(int v) {
+  if (v < 1000) return '$v';
+  if (v < 1000000) {
+    final n = v / 1000;
+    return n >= 100 || n == n.truncateToDouble()
+        ? '${n.truncate()}k'
+        : '${n.toStringAsFixed(1)}k';
+  }
+  if (v < 1000000000) {
+    final n = v / 1000000;
+    return n >= 100 || n == n.truncateToDouble()
+        ? '${n.truncate()}M'
+        : '${n.toStringAsFixed(1)}M';
+  }
+  final n = v / 1000000000;
+  return n == n.truncateToDouble()
+      ? '${n.truncate()}B'
+      : '${n.toStringAsFixed(1)}B';
 }
 
 class _StatCard extends StatelessWidget {

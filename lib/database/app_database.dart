@@ -12,7 +12,7 @@ import 'daos/app_preferences_dao.dart';
 
 part 'app_database.g.dart';
 
-/// Main Drift database for NotifyVault.
+/// Main Drift database for Recallr.
 @DriftDatabase(
   tables: [Notifications, Categories, Apps, AppPreferences, Reminders],
   daos: [NotificationDao, AppDao, AppPreferencesDao],

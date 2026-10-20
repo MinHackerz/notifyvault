@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../app/theme/app_colors.dart';
 import '../../app/router/app_router.dart';
 import '../../providers/permission_providers.dart';
+import '../../core/services/ads_service.dart';
 
 class PermissionScreen extends ConsumerStatefulWidget {
   const PermissionScreen({super.key});
@@ -19,6 +20,9 @@ class _PermissionScreenState extends ConsumerState<PermissionScreen> with Widget
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // The user leaves for system settings from here; don't greet their
+    // return with an app open ad.
+    AdsService.instance.holdFullScreenAds();
     // Initial check
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(notificationPermissionProvider.notifier).checkPermission();
@@ -27,6 +31,7 @@ class _PermissionScreenState extends ConsumerState<PermissionScreen> with Widget
 
   @override
   void dispose() {
+    AdsService.instance.releaseFullScreenAds();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -112,7 +117,7 @@ class _PermissionScreenState extends ConsumerState<PermissionScreen> with Widget
               const SizedBox(height: 16),
 
               Text(
-                'NotifyVault needs permission to read your notifications. '
+                'Recallr needs permission to read your notifications. '
                 'This allows us to capture and save them locally on your device.',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
@@ -296,7 +301,7 @@ class _PermissionScreenState extends ConsumerState<PermissionScreen> with Widget
                     const SizedBox(height: 6),
                     Text(
                       'If Android says "Restricted setting":\n'
-                      '1. Long press the NotifyVault app icon > App Info.\n'
+                      '1. Long press the Recallr app icon > App Info.\n'
                       '2. Tap the three-dot menu (top-right) > Allow restricted settings.\n'
                       '3. Open this app and tap the button above again.',
                       style: theme.textTheme.bodySmall?.copyWith(

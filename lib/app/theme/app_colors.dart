@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// NotifyVault color system — modern premium color palette with gradients.
+/// Recallr color system — modern premium color palette with gradients.
 class AppColors {
   AppColors._();
 

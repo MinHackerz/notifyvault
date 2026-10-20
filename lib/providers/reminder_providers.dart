@@ -252,7 +252,7 @@ class ReminderController {
       title: '🔔 $title',
       body: notification.displayText.isNotEmpty
           ? notification.displayText
-          : 'Tap to view reminder details in NotifyVault',
+          : 'Tap to view reminder details in Recallr',
       scheduledTime: scheduledTime,
       payload: notification.id,
     );

@@ -3,9 +3,9 @@ class AppConfig {
   AppConfig._();
 
   // ─── App Info ───
-  static const String appName = 'NotifyVault';
+  static const String appName = 'Recallr';
   static const String appTagline = 'Never Lose a Notification Again';
-  static const String appVersion = '1.0.2';
+  static const String appVersion = '1.0.3';
 
   // ─── Platform Channels ───
   static const String notificationMethodChannel =

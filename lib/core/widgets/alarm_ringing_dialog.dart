@@ -8,6 +8,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import '../../app/theme/app_colors.dart';
 import '../../providers/reminder_providers.dart';
+import '../services/ads_service.dart';
 
 class AlarmRingingDialog extends ConsumerStatefulWidget {
   final ReminderItem reminder;
@@ -38,6 +39,7 @@ class _AlarmRingingDialogState extends ConsumerState<AlarmRingingDialog> {
   @override
   void initState() {
     super.initState();
+    AdsService.instance.holdFullScreenAds();
     _startRingtone();
   }
 
@@ -94,6 +96,7 @@ class _AlarmRingingDialogState extends ConsumerState<AlarmRingingDialog> {
   @override
   void dispose() {
     _stopRingtone();
+    AdsService.instance.releaseFullScreenAds();
     super.dispose();
   }
 
